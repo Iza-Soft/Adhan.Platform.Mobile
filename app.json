@@ -1,0 +1,74 @@
+{
+  "expo": {
+    "name": "Adhan",
+    "slug": "adhan",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.ilkoadamov.adhan",
+      "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0F1B2D",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.ilkoadamov.adhan"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0F1B2D",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160
+        }
+      ],
+      "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "cmakeVersion": "3.31.6"
+          }
+        }
+      ],
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": [
+              "en",
+              "bg"
+            ],
+            "android": [
+              "en",
+              "bg"
+            ]
+          }
+        }
+      ]
+    ],
+    "scheme": "adhan",
+    "backgroundColor": "#0F1B2D",
+    "experiments": {
+      "typedRoutes": true
+    },
+    "locales": {
+      "bg": "./locales/bg.json",
+      "en": "./locales/en.json"
+    }
+  }
+}
