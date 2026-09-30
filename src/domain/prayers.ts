@@ -1,6 +1,7 @@
-import { CalculationMethod, Coordinates, Madhab, PrayerTimes } from 'adhan';
-
-import type { AppLocation, AsrMadhab, CalculationMethodId } from '@/config/defaults';
+/**
+ * Молитвите и логиката „коя е сега / коя е следващата“.
+ * Самите часове идват от src/domain/times.ts (календар на Мюфтийството или изчисление).
+ */
 
 /** Редът е важен: така се показват в списъка и така се търси „следваща“. */
 export const PRAYER_IDS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'] as const;
@@ -28,35 +29,10 @@ export interface PrayerTime {
   time: Date;
 }
 
-export interface CalcOptions {
-  location: AppLocation;
-  method: CalculationMethodId;
-  madhab: AsrMadhab;
-}
-
-/** Часовете за един календарен ден. Изчисляват се офлайн по координати. */
-export function computeDay(date: Date, opts: CalcOptions): PrayerTime[] {
-  const params = CalculationMethod[opts.method]();
-  params.madhab = opts.madhab === 'hanafi' ? Madhab.Hanafi : Madhab.Shafi;
-  const coords = new Coordinates(opts.location.latitude, opts.location.longitude);
-  const pt = new PrayerTimes(coords, date, params);
-  return PRAYER_IDS.map((id) => ({ id, time: pt[id] }));
-}
-
 export interface ThreeDays {
   yesterday: PrayerTime[];
   today: PrayerTime[];
   tomorrow: PrayerTime[];
-}
-
-export function computeThreeDays(now: Date, opts: CalcOptions): ThreeDays {
-  const day = (offset: number) =>
-    new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset, 12);
-  return {
-    yesterday: computeDay(day(-1), opts),
-    today: computeDay(day(0), opts),
-    tomorrow: computeDay(day(1), opts),
-  };
 }
 
 export type RowState = 'past' | 'now' | 'upcoming';

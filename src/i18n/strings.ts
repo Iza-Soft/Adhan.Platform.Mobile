@@ -47,14 +47,25 @@ export const bg = {
 
   placeholder: {
     qibla: 'Компас към Кябе. Идва в етап 7 от плана.',
-    month: 'Таблица с часовете за целия месец. Идва в етап 2 от плана.',
     settings: 'Метод, Аср, звуци, напомняне. Идва в етап 3 от плана.',
+  },
+
+  month: {
+    dayColumn: 'Ден',
+    hijriColumn: 'Хиджра',
+    today: 'Днес',
+    prev: 'Предишен месец',
+    next: 'Следващ месец',
+    friday: 'петък',
+    sourceMufti: 'Източник: Главно мюфтийство на Република България',
+    sourceCalc: 'Изчислено по метод Диянет',
   },
 
   date: {
     weekdaysShort: ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
     // съкращенията са с точка; „март“, „май“, „юни“, „юли“ са пълни думи
     monthsShort: ['яну.', 'фев.', 'март', 'апр.', 'май', 'юни', 'юли', 'авг.', 'септ.', 'окт.', 'ное.', 'дек.'],
+    monthsFull: ['Януари', 'Февруари', 'Март', 'Април', 'Май', 'Юни', 'Юли', 'Август', 'Септември', 'Октомври', 'Ноември', 'Декември'],
   },
 
   hijriMonths: [
@@ -116,13 +127,24 @@ export const en: Strings = {
 
   placeholder: {
     qibla: 'Compass pointing to the Kaaba. Coming in stage 7.',
-    month: 'Prayer times for the whole month. Coming in stage 2.',
     settings: 'Method, Asr, sounds, reminders. Coming in stage 3.',
+  },
+
+  month: {
+    dayColumn: 'Day',
+    hijriColumn: 'Hijri',
+    today: 'Today',
+    prev: 'Previous month',
+    next: 'Next month',
+    friday: 'Friday',
+    sourceMufti: 'Source: Grand Mufti of Bulgaria',
+    sourceCalc: 'Calculated with the Diyanet method',
   },
 
   date: {
     weekdaysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
     monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    monthsFull: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
   },
 
   hijriMonths: [

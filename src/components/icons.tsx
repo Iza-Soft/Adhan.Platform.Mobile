@@ -55,6 +55,14 @@ export function ChevronDownIcon({ size = 12, color }: IconProps) {
   );
 }
 
+export function ChevronIcon({ size = 20, color, direction }: IconProps & { direction: 'left' | 'right' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d={direction === 'left' ? 'M15 6l-6 6 6 6' : 'M9 6l6 6-6 6'} {...stroke(color, 2.2)} />
+    </Svg>
+  );
+}
+
 /* ---- иконите на долната навигация ---- */
 
 export function TodayIcon({ size = 22, color }: IconProps) {

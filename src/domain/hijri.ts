@@ -50,7 +50,8 @@ function fromIntl(date: Date): HijriDate | null {
   }
 }
 
-function tabular(date: Date): HijriDate {
+/** Табличният алгоритъм (експортиран за тестовете). */
+export function tabularHijri(date: Date): HijriDate {
   const jd = julianDayNumber(date.getFullYear(), date.getMonth() + 1, date.getDate());
 
   let l = jd - 1948440 + 10632;
@@ -73,7 +74,7 @@ function tabular(date: Date): HijriDate {
 
 export function toHijri(date: Date, adjustDays = 0): HijriDate {
   const d = new Date(date.getFullYear(), date.getMonth(), date.getDate() + adjustDays, 12);
-  return fromIntl(d) ?? tabular(d);
+  return fromIntl(d) ?? tabularHijri(d);
 }
 
 /** „17 Ребиул-ахир 1448“ или „17 Rabi al-Thani 1448“ */
