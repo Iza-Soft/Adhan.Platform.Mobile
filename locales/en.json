@@ -1,6 +1,7 @@
 {
   "ios": {
-    "CFBundleDisplayName": "Adhan"
+    "CFBundleDisplayName": "Adhan",
+    "NSLocationWhenInUseUsageDescription": "Adhan uses your location to show the prayer times for the place where you are."
   },
   "android": {
     "app_name": "Adhan"

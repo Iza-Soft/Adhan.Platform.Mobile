@@ -1,13 +1,13 @@
-import type { AsrMadhab, CalculationMethodId } from '@/domain/calc';
+import type { AsrMadhab, CalculationMethodId, HighLatRuleId } from '@/domain/calc';
 import type { AppLocation } from '@/domain/location';
-import { findTown, townToLocation } from '@/domain/mufti';
+import { defaultPlace, placeToLocation } from '@/domain/places';
 
 /**
- * Стойности по подразбиране, докато няма екран за настройки и GPS (етап 3 от плана).
+ * Стойности по подразбиране. Потребителят ги сменя от „Настройки“ (src/store/settings.ts).
  */
 
-/** София от календара на Мюфтийството. */
-export const DEFAULT_LOCATION: AppLocation = townToLocation(findTown('sofia')!);
+/** София-град – докато няма GPS или избрано място. */
+export const DEFAULT_LOCATION: AppLocation = placeToLocation(defaultPlace());
 
 /**
  * За места извън България (source 'calc'): метод Диянет и „първият“ Аср (Шафии),
@@ -15,3 +15,6 @@ export const DEFAULT_LOCATION: AppLocation = townToLocation(findTown('sofia')!);
  */
 export const DEFAULT_METHOD: CalculationMethodId = 'Turkey';
 export const DEFAULT_MADHAB: AsrMadhab = 'shafi';
+
+/** Над 48° ширина: „една седма от нощта“ – най-често ползваното правило в Европа. */
+export const DEFAULT_HIGH_LAT_RULE: HighLatRuleId = 'seventhofthenight';

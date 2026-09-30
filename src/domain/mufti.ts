@@ -1,5 +1,6 @@
 import data from '@/data/mufti.json';
 
+import { distanceKm } from './geo';
 import type { AppLocation } from './location';
 import { PRAYER_IDS, type PrayerTime } from './prayers';
 
@@ -69,15 +70,6 @@ export function townToLocation(town: MuftiTown): AppLocation {
 
 export function findTown(id: string): MuftiTown | undefined {
   return MUFTI_TOWNS.find((t) => t.id === id);
-}
-
-function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const rad = Math.PI / 180;
-  const dLat = (lat2 - lat1) * rad;
-  const dLon = (lon2 - lon1) * rad;
-  const a =
-    Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) ** 2;
-  return 6371 * 2 * Math.asin(Math.sqrt(a));
 }
 
 export function nearestTown(lat: number, lon: number): { town: MuftiTown; km: number } {

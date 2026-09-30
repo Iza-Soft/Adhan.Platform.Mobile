@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useI18n } from '@/i18n';
 import { colors } from '@/theme/colors';
@@ -11,9 +11,13 @@ interface Props {
   gregorian: string;
   hijri: string;
   onCityPress?: () => void;
+  /** GPS определя мястото в момента – въртящ се индикатор вместо иконата. */
+  locating?: boolean;
+  /** Още няма място от GPS (първо отваряне) – вместо града пише „Определям мястото…“. */
+  locatingFirstTime?: boolean;
 }
 
-export function TopBar({ city, gregorian, hijri, onCityPress }: Props) {
+export function TopBar({ city, gregorian, hijri, onCityPress, locating, locatingFirstTime }: Props) {
   const { t } = useI18n();
   return (
     <View style={styles.bar}>
@@ -21,10 +25,15 @@ export function TopBar({ city, gregorian, hijri, onCityPress }: Props) {
         onPress={onCityPress}
         style={({ pressed }) => [styles.city, pressed && styles.pressed]}
         accessibilityRole="button"
-        accessibilityLabel={t.a11y.city(city)}
+        accessibilityLabel={locating ? `${t.a11y.locating}. ${t.a11y.city(city)}` : t.a11y.city(city)}
+        accessibilityState={{ busy: !!locating }}
       >
-        <PinIcon color={colors.text} />
-        <Text style={styles.cityText}>{city}</Text>
+        {locating ? (
+          <ActivityIndicator size="small" color={colors.gold} style={styles.spinner} />
+        ) : (
+          <PinIcon color={colors.text} />
+        )}
+        <Text style={styles.cityText}>{locating && locatingFirstTime ? t.locating : city}</Text>
         <ChevronDownIcon color={colors.text} />
       </Pressable>
       <View style={styles.dates}>
@@ -56,6 +65,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.pill,
   },
   pressed: { opacity: 0.7 },
+  spinner: { width: 15, height: 15, transform: [{ scale: 0.8 }] },
   cityText: { fontFamily: fonts.bold, fontSize: 14, color: colors.text },
   dates: { alignItems: 'flex-end', flexShrink: 1 },
   gregorian: { fontFamily: fonts.bold, fontSize: 12, lineHeight: 16, color: colors.text },

@@ -29,13 +29,29 @@ function julianDayNumber(year: number, month: number, day: number): number {
   );
 }
 
+// Един форматер за цялото приложение: в Hermes създаването на Intl.DateTimeFormat е скъпо
+// (за „Месец“ бяха 30 нови форматера при всяко показване). null = телефонът не го поддържа.
+let formatter: Intl.DateTimeFormat | null | undefined;
+function umalquraFormatter(): Intl.DateTimeFormat | null {
+  if (formatter === undefined) {
+    try {
+      formatter = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+        day: 'numeric',
+        month: 'numeric',
+        year: 'numeric',
+      });
+    } catch {
+      formatter = null;
+    }
+  }
+  return formatter;
+}
+
 function fromIntl(date: Date): HijriDate | null {
+  const f = umalquraFormatter();
+  if (!f) return null;
   try {
-    const parts = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
-      day: 'numeric',
-      month: 'numeric',
-      year: 'numeric',
-    }).formatToParts(date);
+    const parts = f.formatToParts(date);
     const num = (type: string) => parseInt(parts.find((p) => p.type === type)?.value ?? '', 10);
     const day = num('day');
     const month = num('month');

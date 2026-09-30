@@ -1,4 +1,4 @@
-import { computeCalcDay, type AsrMadhab, type CalculationMethodId } from './calc';
+import { computeCalcDay, type AsrMadhab, type CalculationMethodId, type HighLatRuleId } from './calc';
 import type { AppLocation } from './location';
 import { computeMuftiDay } from './mufti';
 import type { PrayerId, PrayerTime, ThreeDays } from './prayers';
@@ -9,6 +9,8 @@ export interface TimesOptions {
   method: CalculationMethodId;
   /** Само за source 'calc'. В България Аср е винаги по календара на Мюфтийството. */
   madhab: AsrMadhab;
+  /** Само за source 'calc' и ширина над 48°. */
+  highLatRule?: HighLatRuleId;
   /** Ръчни корекции в минути (+/−) за всяка молитва. Настройва се в етап 3. */
   offsets?: Partial<Record<PrayerId, number>>;
 }
@@ -21,7 +23,7 @@ export function computeDay(date: Date, opts: TimesOptions): PrayerTime[] {
   const base =
     location.source === 'mufti'
       ? computeMuftiDay(date, location.muftiShift ?? 0)
-      : computeCalcDay(date, location, opts.method, opts.madhab);
+      : computeCalcDay(date, location, opts.method, opts.madhab, opts.highLatRule);
 
   if (!opts.offsets) return base;
   return base.map((p) => {
