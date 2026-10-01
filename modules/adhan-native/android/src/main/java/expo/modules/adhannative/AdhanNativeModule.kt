@@ -92,6 +92,42 @@ class AdhanNativeModule : Module() {
       AlarmService.command(context, AlarmService.ACTION_STOP)
     }
 
+    /* -------------------------------------------------- звуци (етап 6) */
+
+    // Преслушване: вграден звук (res/raw) или свой файл (file://…).
+    Function("previewSound") { source: String ->
+      SoundPreview.play(context, source)
+    }
+
+    Function("stopPreview") {
+      SoundPreview.stop()
+    }
+
+    // Свой кратък звук: откъс до maxSec (срез на пауза, заглъхване) в Notifications/Ezan.
+    AsyncFunction("prepareShortSound") { uri: String, title: String, maxSec: Double ->
+      val r = ShortSound.prepare(context, uri, title, maxSec)
+      mapOf(
+        "uri" to r.uri,
+        "duration" to r.duration,
+        "originalDuration" to r.originalDuration,
+        "trimmed" to r.trimmed,
+      )
+    }
+
+    Function("deleteShortSound") { uri: String ->
+      ShortSound.delete(context, uri)
+    }
+
+    // Канал за известие със свой звук (content://…).
+    Function("createSoundChannel") { id: String, name: String, uri: String, alarm: Boolean, vibrate: Boolean, pattern: List<Double> ->
+      ShortSound.createChannel(context, id, name, uri, alarm, vibrate, pattern.map { it.toLong() }.toLongArray())
+    }
+
+    // Дължината на звуков файл в секунди; −1 – не е звук или не може да се прочете.
+    AsyncFunction("getAudioDuration") { uri: String ->
+      SoundSource.durationSec(context, uri)
+    }
+
     /* -------------------------------------------------- аларма на цял екран (Android 14+) */
 
     Function("canUseFullScreenIntent") {

@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 
 import { useAlertPrefs } from '@/store/alertPrefs';
 import { useSettings } from '@/store/settings';
+import { useSounds } from '@/store/sounds';
 
 import { rescheduleNotifications } from './notifications';
 
@@ -20,7 +21,11 @@ if (Platform.OS !== 'web') {
   TaskManager.defineTask(RESCHEDULE_TASK, async () => {
     try {
       // при пускане само за задачата настройките още не са прочетени от паметта
-      await Promise.all([useSettings.persist.rehydrate(), useAlertPrefs.persist.rehydrate()]);
+      await Promise.all([
+        useSettings.persist.rehydrate(),
+        useAlertPrefs.persist.rehydrate(),
+        useSounds.persist.rehydrate(),
+      ]);
       await rescheduleNotifications();
       return BackgroundTask.BackgroundTaskResult.Success;
     } catch {

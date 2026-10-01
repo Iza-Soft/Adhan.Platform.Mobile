@@ -27,7 +27,7 @@ data class AlarmData(
   /** Фонът – трите цвята на молитвата (горе, среда, долу). */
   val colors: IntArray,
   val vibrate: Boolean,
-  /** Името на звука в res/raw (без разширение): „ezan_adhan“. */
+  /** Звукът: името в res/raw без разширение („adhan_makkah“) или свой файл (file://…). */
   val sound: String,
   val labels: Labels,
   /** Езикът за датата на екрана: „bg“ или „en“. */
@@ -77,7 +77,7 @@ data class AlarmData(
         notifBody = o.optString("notifBody"),
         colors = colors,
         vibrate = o.optBoolean("vibrate", true),
-        sound = o.optString("sound", "ezan_adhan"),
+        sound = o.optString("sound", SoundSource.FALLBACK),
         labels = Labels(
           app = l.optString("app", "ADHAN"),
           stop = l.optString("stop", "Stop"),

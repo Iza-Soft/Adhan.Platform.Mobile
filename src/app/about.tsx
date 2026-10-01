@@ -66,6 +66,7 @@ export default function AboutScreen() {
           {source('osm', true)}
           {source('ne')}
           {source('geonames')}
+          {source('praytimes')}
         </Group>
         <Group label={a.groupPrivacy}>
           <Row first>

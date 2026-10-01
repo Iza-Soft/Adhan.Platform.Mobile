@@ -13,7 +13,6 @@ import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
-import android.media.RingtoneManager
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
@@ -141,15 +140,8 @@ class AlarmService : Service() {
     val p = MediaPlayer()
     try {
       p.setAudioAttributes(attrs)
-      val resId = resources.getIdentifier(alarm.sound, "raw", packageName)
-      if (resId != 0) {
-        val afd = resources.openRawResourceFd(resId)
-        p.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-        afd.close()
-      } else {
-        // звукът липсва – сигналът за аларма на телефона
-        p.setDataSource(this, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM))
-      }
+      // вграден (res/raw) или свой файл; ако липсва – резервният, накрая сигналът на телефона
+      SoundSource.setDataSource(this, p, alarm.sound)
       p.setWakeMode(this, PowerManager.PARTIAL_WAKE_LOCK)
       p.setOnCompletionListener { finishPlaying() }
       p.setOnErrorListener { _, _, _ ->

@@ -5,21 +5,22 @@ import { create } from 'zustand';
 import {
   canScheduleExactAlarms,
   canUseFullScreenIntent,
+  createSoundChannel,
   hasNativeAlarms,
   isIgnoringBatteryOptimizations,
   openExactAlarmSettings,
   setAlarms,
-  testAlarm,
   type NativeAlarm,
 } from '../../modules/adhan-native';
 
-import { formatHM } from '@/domain/format';
-import { planNotifications, type PlannedNotification, type SoundKind } from '@/domain/notifications';
+import { planNotifications, type PlannedNotification } from '@/domain/notifications';
 import { PRAYERS, type PrayerId } from '@/domain/prayers';
+import { findSound, notificationFileName, type SoundDef } from '@/domain/sounds';
 import { getI18n } from '@/i18n';
 import { PHASE_GRADIENTS } from '@/theme/gradients';
 import { useAlertPrefs } from '@/store/alertPrefs';
 import { selectLocation, selectTimesOptions, useSettings } from '@/store/settings';
+import { useSounds } from '@/store/sounds';
 
 /**
  * Известията за намаз – само локални (без интернет, без Firebase/FCM и без HMS Push).
@@ -62,83 +63,78 @@ export const useNotificationStatus = create<NotificationStatus>(() => ({
 
 const SUPPORTED = Platform.OS === 'android' || Platform.OS === 'ios';
 
-/** Файловете от assets/sounds (виж app.json → expo-notifications → sounds). */
-const SOUND_FILE: Record<SoundKind, string> = {
-  chime: 'ezan_chime.wav',
-  adhan: 'ezan_adhan.wav',
-};
-
-/* ------------------------------------------------------------------ канали (Android) */
-
-type ChannelKind = 'prayer' | 'adhan' | 'reminder';
+/* ------------------------------------------------------------------ звуци и канали (Android) */
 
 /**
- * На Android звукът и вибрацията са на канала и не могат да се сменят след създаването му.
- * Затова каналите с и без вибрация са различни („adhan-v2“ / „adhan-s2“),
- * а ненужният се трие при смяна на настройката.
- * Версия 2: каналът „Езан“ звучи като аларма (виж setupChannels).
- * Версия 3: при „Езан“ вибрацията продължава, докато звучи езанът; при известията – една.
- * Каналите от по-старите версии се трият.
+ * Етап 6: всяка молитва има свой звук. На Android звукът е на канала и не може да се
+ * смени след създаването му – затова каналът е за двойката „вид + звук“ (+ с/без вибрация):
+ * „ch4-n-chime_soft-v“ – известие/напомняне, „ch4-a-takbir_makkah-v“ – езанът като известие
+ * (без „Аларми и напомняния“), през потока за аларми. Ненужните канали се трият.
  */
-const CHANNEL_VERSION = 3;
-function channelId(kind: ChannelKind, vibrate: boolean, version = CHANNEL_VERSION): string {
-  return `${kind}-${vibrate ? 'v' : 's'}${version}`;
-}
+type ChannelUse = 'notify' | 'alarm';
+const CHANNEL_PREFIX = 'ch4-';
+/** Каналите отпреди етап 6 („prayer-v3“, „adhan-s2“…). */
+const OLD_CHANNEL = /^(prayer|adhan|reminder)-[vs]\d$/;
+
+const channelId = (use: ChannelUse, sound: SoundDef, vibrate: boolean) =>
+  `${CHANNEL_PREFIX}${use === 'alarm' ? 'a' : 'n'}-${(sound.custom ? sound.id : sound.file).replace(/[^a-z0-9_]/gi, '_')}-${vibrate ? 'v' : 's'}`;
 
 /** Известие и напомняне: едно дълго вибриране (1 сек.). */
 const VIBRATION_ONCE = [0, 1000];
+/** Езанът като известие (до 30 сек.): 1 сек. вибрация / 0,7 сек. пауза. */
+const VIBRATION_ALARM = [0, ...Array.from({ length: 16 }, () => [1000, 700]).flat()];
+const vibrationFor = (use: ChannelUse) => (use === 'alarm' ? VIBRATION_ALARM : VIBRATION_ONCE);
 
-/**
- * Езан: 1 сек. вибрация / 0,7 сек. пауза, докато звучи временният езан (~28 сек.).
- * Силата на вибрацията се определя от телефона (Настройки → Звуци и вибрация).
- * В етап 5 алармата управлява вибрацията сама – със силата и продължителността на пълния езан.
- */
-const VIBRATION_ADHAN = [0, ...Array.from({ length: 16 }, () => [1000, 700]).flat()];
+/** Каналите, създадени в тази сесия (създаването е бавно – не всеки път). */
+const created = new Set<string>();
 
-const vibrationFor = (kind: ChannelKind) => (kind === 'adhan' ? VIBRATION_ADHAN : VIBRATION_ONCE);
-
-function channelFor(n: PlannedNotification): ChannelKind {
-  if (n.kind === 'reminder' || n.kind === 'refresh') return 'reminder';
-  return n.sound === 'adhan' ? 'adhan' : 'prayer';
+async function ensureChannel(use: ChannelUse, sound: SoundDef, vibrate: boolean): Promise<string> {
+  const id = channelId(use, sound, vibrate);
+  if (Platform.OS !== 'android' || created.has(id)) return id;
+  const { lang, t } = getI18n();
+  const name = `${use === 'alarm' ? t.notifications.channelAdhan : t.notifications.channelPrayer} · ${sound.names[lang]}`;
+  // свой кратък звук (откъсът в Notifications/Ezan) и звукът на телефона – каналът се създава
+  // в native частта, защото expo-notifications приема само звуци от res/raw
+  if (sound.custom || sound.id === 'system') {
+    createSoundChannel(id, name, sound.file, use === 'alarm', vibrate, vibrationFor(use));
+    created.add(id);
+    return id;
+  }
+  const { AndroidAudioUsage: Usage, AndroidAudioContentType: Content, AndroidImportance: Imp } = Notifications;
+  await Notifications.setNotificationChannelAsync(id, {
+    name,
+    importance: use === 'alarm' ? Imp.MAX : Imp.HIGH,
+    sound: notificationFileName(sound),
+    // езанът – през потока за аларми: не зависи от силата на звука за известия и от безшумния режим
+    audioAttributes: { usage: use === 'alarm' ? Usage.ALARM : Usage.NOTIFICATION, contentType: Content.SONIFICATION },
+    enableVibrate: vibrate,
+    vibrationPattern: vibrate ? vibrationFor(use) : null,
+    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+  });
+  created.add(id);
+  return id;
 }
 
-let channelsFor: boolean | null = null;
-
-async function setupChannels(vibrate: boolean): Promise<void> {
-  if (Platform.OS !== 'android' || channelsFor === vibrate) return;
-  const { t } = getI18n();
-  const { AndroidAudioUsage: Usage, AndroidAudioContentType: Content, AndroidImportance: Imp } = Notifications;
-  const defs: {
-    kind: ChannelKind;
-    name: string;
-    sound: SoundKind;
-    importance: Notifications.AndroidImportance;
-    usage: Notifications.AndroidAudioUsage;
-  }[] = [
-    { kind: 'prayer', name: t.notifications.channelPrayer, sound: 'chime', importance: Imp.HIGH, usage: Usage.NOTIFICATION },
-    // Езанът звучи през потока за аларми: не зависи от силата на звука за известия
-    // и от безшумния режим – както будилник. (Пълният езан с „Спри“ – етап 5.)
-    { kind: 'adhan', name: t.notifications.channelAdhan, sound: 'adhan', importance: Imp.MAX, usage: Usage.ALARM },
-    { kind: 'reminder', name: t.notifications.channelReminder, sound: 'chime', importance: Imp.HIGH, usage: Usage.NOTIFICATION },
-  ];
-  for (const d of defs) {
-    await Notifications.setNotificationChannelAsync(channelId(d.kind, vibrate), {
-      name: d.name,
-      importance: d.importance,
-      sound: SOUND_FILE[d.sound],
-      audioAttributes: { usage: d.usage, contentType: Content.SONIFICATION },
-      enableVibrate: vibrate,
-      vibrationPattern: vibrate ? vibrationFor(d.kind) : null,
-      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-    });
-    await Notifications.deleteNotificationChannelAsync(channelId(d.kind, !vibrate));
-    // каналите от по-стари версии
-    for (let v = 1; v < CHANNEL_VERSION; v++) {
-      await Notifications.deleteNotificationChannelAsync(channelId(d.kind, true, v));
-      await Notifications.deleteNotificationChannelAsync(channelId(d.kind, false, v));
+/** Трие каналите, които вече не трябват (стари версии, сменени звуци, вибрация). */
+async function cleanupChannels(wanted: Set<string>): Promise<void> {
+  if (Platform.OS !== 'android') return;
+  const channels = await Notifications.getNotificationChannelsAsync();
+  for (const c of channels) {
+    if ((c.id.startsWith(CHANNEL_PREFIX) && !wanted.has(c.id)) || OLD_CHANNEL.test(c.id)) {
+      await Notifications.deleteNotificationChannelAsync(c.id);
+      created.delete(c.id);
     }
   }
-  channelsFor = vibrate;
+}
+
+/** Избраните звуци – от настройките (src/store/sounds.ts). */
+function soundChoice() {
+  const s = useSounds.getState();
+  return {
+    notify: findSound(s.notify, 'short', s.custom, 'notify'),
+    short: (p: PrayerId) => findSound(s.short[p], 'short', s.custom),
+    full: (p: PrayerId) => findSound(s.full[p], 'full', s.custom),
+  };
 }
 
 /* ------------------------------------------------------------------ разрешение */
@@ -248,7 +244,7 @@ async function doReschedule(): Promise<void> {
         })
       : [];
 
-  await setupChannels(s.vibrate);
+  const sounds = soundChoice();
 
   // Android (етап 5): езанът е истинска аларма в native частта – пълен звук, „Спри“,
   // екран „Аларма“. Без точни аларми (setAlarmClock не става) – остава звукът на известието.
@@ -257,7 +253,10 @@ async function doReschedule(): Promise<void> {
   if (nativeAlarmsEnabled(exact)) {
     const alarms = plan.filter(isAlarm);
     notifications = plan.filter((n) => !isAlarm(n));
-    alarmCount = Math.max(0, setAlarms(alarms.map((n) => toNativeAlarm(n, s.vibrate, selectLocation(s).names[lang]))));
+    alarmCount = Math.max(
+      0,
+      setAlarms(alarms.map((n) => toNativeAlarm(n, s.vibrate, selectLocation(s).names[lang], sounds.full(n.prayer!)))),
+    );
   } else if (hasNativeAlarms()) {
     setAlarms([]);
   }
@@ -270,10 +269,14 @@ async function doReschedule(): Promise<void> {
       .map((r) => [r.identifier, (r.content.data as { sig?: string } | null)?.sig ?? '']),
   );
 
-  const wanted = notifications.map((n) => {
-    const channel = channelId(channelFor(n), s.vibrate);
-    return { n, channel, sig: signatureOf(n, channel, exact) };
-  });
+  // кой звук за всяко известие: езанът като известие – краткият звук на молитвата; другите – звукът на известията
+  const wanted = [];
+  for (const n of notifications) {
+    const use: ChannelUse = isAlarm(n) ? 'alarm' : 'notify';
+    const sound = use === 'alarm' ? sounds.short(n.prayer!) : sounds.notify;
+    const channel = await ensureChannel(use, sound, s.vibrate);
+    wanted.push({ n, use, sound, channel, sig: signatureOf(n, channel, exact) + '|' + notificationFileName(sound) });
+  }
   const wantedIds = new Set(wanted.map((w) => w.n.id));
 
   for (const [id, sig] of ours) {
@@ -284,17 +287,18 @@ async function doReschedule(): Promise<void> {
     }
   }
 
-  for (const { n, channel, sig } of wanted) {
+  for (const { n, use, sound, channel, sig } of wanted) {
     if (ours.has(n.id)) continue;
     await Notifications.scheduleNotificationAsync({
       identifier: n.id,
       content: {
         title: n.title,
         body: n.body,
-        // на Android звукът е от канала, но без име на звук известието би било „тихо“
-        sound: SOUND_FILE[n.sound],
+        // на Android звукът е от канала, но без име на звук известието би било „тихо“;
+        // на iPhone – файлът в приложението или в Library/Sounds (своите звуци)
+        sound: notificationFileName(sound),
         // за Android под 8; на по-новите вибрацията е от канала
-        vibrate: s.vibrate ? vibrationFor(channelFor(n)) : undefined,
+        vibrate: s.vibrate ? vibrationFor(use) : undefined,
         data: { sig, kind: n.kind, prayer: n.prayer, sound: n.sound, at: n.at.getTime() },
         ...(Platform.OS === 'android' ? { color: '#D4A857' } : {}),
       },
@@ -305,6 +309,8 @@ async function doReschedule(): Promise<void> {
       },
     });
   }
+
+  await cleanupChannels(new Set(wanted.map((w) => w.channel))).catch(() => {});
 
   useNotificationStatus.setState({
     count: plan.length,
@@ -323,7 +329,7 @@ function nativeAlarmsEnabled(exact: boolean | null): boolean {
 }
 
 /** Едно известие от плана → аларма за native частта, с всички текстове на езика на телефона. */
-function toNativeAlarm(n: PlannedNotification, vibrate: boolean, place: string): NativeAlarm {
+function toNativeAlarm(n: PlannedNotification, vibrate: boolean, place: string, sound: SoundDef): NativeAlarm {
   const { lang, t } = getI18n();
   const prayer = (n.prayer ?? 'dhuhr') as PrayerId;
   const name = t.prayers[prayer];
@@ -338,39 +344,20 @@ function toNativeAlarm(n: PlannedNotification, vibrate: boolean, place: string):
     notifBody: n.body,
     colors: [...PHASE_GRADIENTS[prayer]] as [string, string, string],
     vibrate,
-    sound: SOUND_FILE.adhan.replace(/\.wav$/, ''),
+    // вграден – името в res/raw; свой – пътят до файла
+    sound: sound.file,
     lang,
     labels: {
       app: t.alarm.app,
-      stop: t.alarm.stop,
+      // „Спри езана“ – при езан; при мелодия или свой звук – „Спри алармата“
+      stop: sound.category === 'adhan' || sound.category === 'takbir' ? t.alarm.stop : t.alarm.stopAlarm,
       mute: t.alarm.mute,
       muteShort: t.alarm.muteShort,
       close: t.alarm.close,
-      soundName: t.alarm.soundName,
+      soundName: sound.names[lang],
       channel: t.alarm.channel,
     },
   };
-}
-
-/**
- * Пробна аларма след 10 сек. в native частта (екранът „Аларма“ и пълният звук).
- * false – няма native аларма (тогава – пробното известие със звука на езана).
- */
-function sendTestAlarm(at: number): boolean {
-  if (!nativeAlarmsEnabled(useNotificationStatus.getState().exact)) return false;
-  const { t } = getI18n();
-  const s = useSettings.getState();
-  const place = selectLocation(s).names[getI18n().lang];
-  const n: PlannedNotification = {
-    id: 'test',
-    at: new Date(at),
-    kind: 'prayer',
-    prayer: 'maghrib',
-    sound: 'adhan',
-    title: `${t.alarm.testTitle} – ${formatHM(new Date(at))}`,
-    body: t.notifications.testBody,
-  };
-  return testAlarm(toNativeAlarm(n, s.vibrate, place), at - Date.now());
 }
 
 /** Трие всички известия на Езан и ги планира наново (от „Проверка на известията“). */
@@ -381,31 +368,34 @@ export async function resetAllNotifications(): Promise<void> {
   for (const r of existing) {
     if (r.identifier.startsWith('ezan-')) await Notifications.cancelScheduledNotificationAsync(r.identifier);
   }
-  channelsFor = null;
+  created.clear();
   await rescheduleNotifications();
 }
 
-/** Пробно известие след 10 сек. – с кратък сигнал или с езан. Връща часа, в който ще дойде. */
-export async function sendTestNotification(sound: SoundKind): Promise<number> {
+/**
+ * Пробно известие след 10 сек. – със звука на известията. Връща часа, в който ще дойде.
+ * (Звукът на алармата се преслушва направо в избора на звук – етап 6.)
+ */
+export async function sendTestNotification(): Promise<number> {
   const at = Date.now() + 10_000;
   if (!SUPPORTED) return at;
-  if (sound === 'adhan' && sendTestAlarm(at)) return at;
   const s = useSettings.getState();
-  await setupChannels(s.vibrate);
+  const sound = soundChoice().notify;
+  const channel = await ensureChannel('notify', sound, s.vibrate);
   const { t } = getI18n();
   await Notifications.scheduleNotificationAsync({
     identifier: `test-${Date.now()}`,
     content: {
       title: t.notifications.testTitle,
       body: t.notifications.testBody,
-      sound: SOUND_FILE[sound],
-      vibrate: s.vibrate ? vibrationFor(sound === 'adhan' ? 'adhan' : 'prayer') : undefined,
-      data: { kind: 'test', sound, at },
+      sound: notificationFileName(sound),
+      vibrate: s.vibrate ? vibrationFor('notify') : undefined,
+      data: { kind: 'test', at },
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DATE,
       date: new Date(at),
-      channelId: channelId(sound === 'adhan' ? 'adhan' : 'prayer', s.vibrate),
+      channelId: channel,
     },
   });
   return at;

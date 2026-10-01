@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GeometricPattern } from '@/components/GeometricPattern';
 import { BatteryWarning } from '@/components/settings/BatteryWarning';
 import { NotificationsGroup } from '@/components/settings/NotificationsGroup';
+import { SoundsGroup } from '@/components/settings/SoundsGroup';
 import { PinIcon } from '@/components/icons';
 import {
   Choice,
@@ -107,6 +108,9 @@ export default function SettingsScreen() {
 
         {/* ---- Известия ---- */}
         <NotificationsGroup />
+
+        {/* ---- Звуци (етап 6) ---- */}
+        <SoundsGroup />
 
         {/* ---- Часове ---- */}
         {isCalc ? (

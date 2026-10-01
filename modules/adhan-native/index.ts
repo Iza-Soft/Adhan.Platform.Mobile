@@ -21,6 +21,40 @@ interface AdhanNativeModule {
   openBatteryOptimizationSettings?(): void;
   hasGoogleServices?(): boolean;
   getCurrentLocation?(timeoutMs: number): Promise<NativeLocation | null>;
+  // етап 6 – звуци
+  previewSound?(source: string): void;
+  stopPreview?(): void;
+  getAudioDuration?(uri: string): Promise<number>;
+  prepareShortSound?(uri: string, title: string, maxSec: number): Promise<PreparedShortSound>;
+  deleteShortSound?(uri: string): void;
+  createSoundChannel?(id: string, name: string, uri: string, alarm: boolean, vibrate: boolean, pattern: number[]): void;
+}
+
+/** Android: свой кратък звук – откъсът в Notifications/Ezan. */
+export interface PreparedShortSound {
+  uri: string;
+  duration: number;
+  originalDuration: number;
+  trimmed: boolean;
+}
+
+/** Резултатът от подготовката на свой звук на iPhone. */
+export interface PreparedSound {
+  /** Колко свири (след скъсяването), сек. */
+  duration: number;
+  /** Колко е бил записът, сек. */
+  originalDuration: number;
+  /** true – записът е скъсен до 30 сек. (на пауза, с плавно заглъхване). */
+  trimmed: boolean;
+  ok: boolean;
+}
+
+/** Функциите на iPhone (етап 6): своите звуци за известия. */
+interface AdhanNativeIos {
+  getAudioDuration(uri: string): Promise<number>;
+  prepareNotificationSound(uri: string, name: string, maxSec: number): Promise<PreparedSound>;
+  deleteNotificationSound(name: string): void;
+  soundsDirectoryUri(): string;
 }
 
 export interface NativeLocation {
@@ -68,6 +102,7 @@ export interface AlarmHistoryItem {
 }
 
 const native = Platform.OS === 'android' ? requireOptionalNativeModule<AdhanNativeModule>('AdhanNative') : null;
+const ios = Platform.OS === 'ios' ? requireOptionalNativeModule<AdhanNativeIos>('AdhanNative') : null;
 
 function safe<T>(fn: () => T, fallback: T): T {
   try {
@@ -163,4 +198,76 @@ export async function getNativeLocation(timeoutMs: number): Promise<NativeLocati
   } catch {
     return null;
   }
+}
+
+/* ------------------------------------------------------------------ звуци (етап 6) */
+
+/** Android: преслушване на вграден звук (res/raw) или свой файл. */
+export function previewNativeSound(source: string): boolean {
+  if (!native?.previewSound) return false;
+  return safe(() => {
+    native.previewSound!(source);
+    return true;
+  }, false);
+}
+
+export function stopNativePreview(): void {
+  safe(() => native?.stopPreview?.(), undefined);
+}
+
+/** Дължината на звуков файл в секунди; −1 – не е звук; null – няма native модул. */
+export async function getAudioDuration(uri: string): Promise<number | null> {
+  try {
+    if (native?.getAudioDuration) return await native.getAudioDuration(uri);
+    if (ios) return await ios.getAudioDuration(uri);
+  } catch {
+    return -1;
+  }
+  return null;
+}
+
+/** iPhone: преобразува своя звук в Library/Sounds/<name> (.caf); по-дълъг от maxSec се скъсява. */
+export async function prepareNotificationSound(
+  uri: string,
+  name: string,
+  maxSec: number,
+): Promise<PreparedSound | null> {
+  if (!ios) return null;
+  return ios.prepareNotificationSound(uri, name, maxSec);
+}
+
+export function deleteNotificationSound(name: string): void {
+  safe(() => ios?.deleteNotificationSound(name), undefined);
+}
+
+/** iPhone: file://…/Library/Sounds/ – за преслушване на своите звуци. */
+export function iosSoundsDirectoryUri(): string | null {
+  if (!ios) return null;
+  return safe(() => ios.soundsDirectoryUri(), null);
+}
+
+/** Android: откъс до maxSec от своя звук (срез на пауза, заглъхване) в Notifications/Ezan. */
+export async function prepareShortSound(uri: string, title: string, maxSec: number): Promise<PreparedShortSound | null> {
+  if (!native?.prepareShortSound) return null;
+  return native.prepareShortSound(uri, title, maxSec);
+}
+
+export function deleteShortSound(uri: string): void {
+  safe(() => native?.deleteShortSound?.(uri), undefined);
+}
+
+/** Android: канал за известие със свой звук. false – няма native модул. */
+export function createSoundChannel(
+  id: string,
+  name: string,
+  uri: string,
+  alarm: boolean,
+  vibrate: boolean,
+  pattern: number[],
+): boolean {
+  if (!native?.createSoundChannel) return false;
+  return safe(() => {
+    native.createSoundChannel!(id, name, uri, alarm, vibrate, pattern);
+    return true;
+  }, false);
 }

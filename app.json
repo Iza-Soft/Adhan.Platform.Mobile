@@ -24,6 +24,11 @@
       "package": "com.ilkoadamov.adhan",
       "permissions": [
         "android.permission.SCHEDULE_EXACT_ALARM"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -80,10 +85,44 @@
           "color": "#D4A857",
           "sounds": [
             "./assets/sounds/ezan_chime.wav",
-            "./assets/sounds/ezan_adhan.wav"
+            "./assets/sounds/chime_soft.wav",
+            "./assets/sounds/takbir_makkah.wav",
+            "./assets/sounds/takbir_madinah.wav",
+            "./assets/sounds/takbir_aqsa.wav",
+            "./assets/sounds/takbir_istanbul.wav",
+            "./assets/sounds/notify_airport.wav",
+            "./assets/sounds/notify_popup.wav",
+            "./assets/sounds/notify_right.wav",
+            "./assets/sounds/notify_modern.wav",
+            "./assets/sounds/notify_magical.wav",
+            "./assets/sounds/notify_chime_bright.wav",
+            "./assets/sounds/notify_doorbell.wav",
+            "./assets/sounds/notify_celestial.wav",
+            "./assets/sounds/notify_bell_ding.wav",
+            "./assets/sounds/notify_crisp_ding.wav",
+            "./assets/sounds/notify_shimmer.wav",
+            "./assets/sounds/notify_smoke_alarm.wav",
+            "./assets/sounds/notify_swoop.wav",
+            "./assets/sounds/notify_retro.wav",
+            "./assets/sounds/notify_robot.wav",
+            "./assets/sounds/notify_three_beep.wav",
+            "./assets/sounds/notify_machine_beep.wav",
+            "./assets/sounds/notify_water_drop.wav",
+            "./assets/sounds/notify_hang_up.wav",
+            "./assets/sounds/notify_standard.wav"
           ]
         }
-      ]
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false,
+          "enableBackgroundRecording": false
+        }
+      ],
+      "./plugins/withFullSounds"
     ],
     "scheme": "adhan",
     "backgroundColor": "#0F1B2D",

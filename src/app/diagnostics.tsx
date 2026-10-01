@@ -151,7 +151,7 @@ export default function DiagnosticsScreen() {
   };
 
   const sendTest = async (sound: SoundKind) => {
-    const at = await sendTestNotification(sound);
+    const at = await sendTestNotification();
     setNow(at - 10_000);
     setTest({ sound, at });
   };
@@ -257,7 +257,6 @@ export default function DiagnosticsScreen() {
           <View style={styles.testBox}>
             <View style={styles.testRow}>
               {testButton('chime', d.testNotification)}
-              {testButton('adhan', d.testAlarm)}
             </View>
             <Text style={styles.small}>{d.testHint}</Text>
           </View>

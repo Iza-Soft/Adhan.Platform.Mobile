@@ -19,6 +19,7 @@ import '@/services/backgroundTask';
 import { configureNotificationHandler } from '@/services/notifications';
 import { useAlertPrefs } from '@/store/alertPrefs';
 import { useSettings } from '@/store/settings';
+import { useSounds } from '@/store/sounds';
 import { colors } from '@/theme/colors';
 
 // Splash екранът стои, докато шрифтовете и запазените настройки се заредят –
@@ -28,13 +29,14 @@ SplashScreen.preventAutoHideAsync();
 configureNotificationHandler();
 
 function useStoresHydrated(): boolean {
-  const [done, setDone] = useState(
-    () => useSettings.persist.hasHydrated() && useAlertPrefs.persist.hasHydrated(),
-  );
+  const all = () =>
+    useSettings.persist.hasHydrated() && useAlertPrefs.persist.hasHydrated() && useSounds.persist.hasHydrated();
+  const [done, setDone] = useState(all);
   useEffect(() => {
-    const check = () => setDone(useSettings.persist.hasHydrated() && useAlertPrefs.persist.hasHydrated());
+    const check = () => setDone(all());
     const a = useSettings.persist.onFinishHydration(check);
     const b = useAlertPrefs.persist.onFinishHydration(check);
+    const c = useSounds.persist.onFinishHydration(check);
     check();
     // предпазител: ако четенето от паметта на телефона се провали, zustand не съобщава
     // „готово“ – след 2 сек. приложението се показва с настройките по подразбиране
@@ -42,6 +44,7 @@ function useStoresHydrated(): boolean {
     return () => {
       a();
       b();
+      c();
       clearTimeout(timer);
     };
   }, []);
@@ -87,6 +90,7 @@ export default function RootLayout() {
         <Stack.Screen name="about" />
         <Stack.Screen name="diagnostics" />
         <Stack.Screen name="battery" />
+        <Stack.Screen name="sound" />
       </Stack>
     </>
   );
