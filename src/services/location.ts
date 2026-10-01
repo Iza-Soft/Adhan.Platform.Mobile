@@ -1,9 +1,13 @@
 import * as Location from 'expo-location';
+import { Platform } from 'react-native';
 import { create } from 'zustand';
+
+import { getNativeLocation, hasGoogleServices } from '../../modules/adhan-native';
 
 import { nameFromAddress } from '@/domain/abroadName';
 import { isInBulgaria } from '@/domain/places';
 import { locationFromCoords, type PlaceName } from '@/domain/resolve';
+import { offlinePlaceName } from '@/domain/worldCities';
 import { useSettings } from '@/store/settings';
 
 /**
@@ -36,15 +40,44 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 }
 
 /**
- * Името на мястото извън България от телефона (изисква интернет): градът,
- * а под него районът и държавата (виж nameFromAddress). Без връзка – null.
+ * Името на мястото извън България: от телефона (изисква интернет) – градът, а под него
+ * районът и държавата (виж nameFromAddress). Без връзка или без Google услуги (Huawei) –
+ * от офлайн списъка на градовете: „Istanbul“ / „Турция“.
  */
-async function nameAbroad(latitude: number, longitude: number): Promise<PlaceName | null> {
+async function nameAbroad(
+  latitude: number,
+  longitude: number,
+): Promise<{ name: PlaceName | null; country: string | null }> {
   try {
     const [addr] = await withTimeout(Location.reverseGeocodeAsync({ latitude, longitude }), 8000);
-    return nameFromAddress(addr);
+    const name = nameFromAddress(addr);
+    if (name) return { name, country: addr?.isoCountryCode ?? null };
   } catch {
-    return null;
+    // без интернет / без геокодер – офлайн
+  }
+  return { name: offlinePlaceName(latitude, longitude), country: null };
+}
+
+/**
+ * Позицията: през Google Play Services (expo-location), а на телефони без тях (Huawei) –
+ * от вградения в Android LocationManager. Ако expo-location не успее, и на други Android
+ * телефони се пробва LocationManager. Накрая – последната известна позиция.
+ */
+async function getPosition(): Promise<{ latitude: number; longitude: number } | null> {
+  if (Platform.OS === 'android' && hasGoogleServices() === false) {
+    const native = await getNativeLocation(15000);
+    return native ? { latitude: native.latitude, longitude: native.longitude } : null;
+  }
+  try {
+    const p = await withTimeout(Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }), 15000);
+    return p.coords;
+  } catch {
+    if (Platform.OS === 'android') {
+      const native = await getNativeLocation(10000);
+      if (native) return { latitude: native.latitude, longitude: native.longitude };
+    }
+    const last = await Location.getLastKnownPositionAsync().catch(() => null);
+    return last?.coords ?? null;
   }
 }
 
@@ -72,20 +105,16 @@ async function doRefresh(): Promise<void> {
       return;
     }
 
-    // точност ~100 м стига, за да се различат съседни села; последната известна позиция – резерва
-    const position = await withTimeout(
-      Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
-      15000,
-    ).catch(() => Location.getLastKnownPositionAsync());
-
+    // точност ~100 м стига, за да се различат съседни села
+    const position = await getPosition();
     if (!position) {
       setStatus('unavailable');
       return;
     }
 
-    const { latitude, longitude } = position.coords;
+    const { latitude, longitude } = position;
     const abroad = isInBulgaria(latitude, longitude) ? null : await nameAbroad(latitude, longitude);
-    useSettings.getState().setGpsLocation(locationFromCoords(latitude, longitude, abroad));
+    useSettings.getState().setGpsLocation(locationFromCoords(latitude, longitude, abroad?.name, abroad?.country));
     useLocationStatus.setState({ status: 'ok', lastFix: Date.now() });
   } catch {
     setStatus('unavailable');

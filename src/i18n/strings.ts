@@ -1,6 +1,7 @@
 import type { CalculationMethodId, HighLatRuleId } from '@/domain/calc';
 import type { PrayerId } from '@/domain/prayers';
 import type { AlertMode } from '@/store/alertPrefs';
+import type { BatteryBrand } from '@/domain/device';
 
 /**
  * Всички текстове на приложението на двата езика.
@@ -87,6 +88,9 @@ export const bg = {
     sourceMuftiNote: 'В България часовете са по официалния календар. Методът и Аср се избират само извън България.',
     sourceCalc: 'Изчисление за мястото',
     method: 'Метод',
+    methodAuto: 'Автоматично',
+    methodAutoValue: (method: string) => `Авто · ${method}`,
+    methodAutoDesc: (country: string, method: string) => `според държавата: ${country} → ${method}`,
     asr: 'Аср',
     shafi: 'Шафии, Малики, Ханбали',
     hanafi: 'Ханафи',
@@ -183,7 +187,24 @@ export const bg = {
       reset: 'Пренасрочи всички известия',
       resetHint: 'Трие всички известия на Езан и ги планира наново по текущите настройки. Ползвай го, ако нещо изглежда объркано.',
       resetDone: '✓ Всички известия са планирани наново.',
+      fullScreenOk: 'Аларма на цял екран',
+      fullScreenBad: 'Аларма на цял екран е изключена',
+      batteryOk: 'Работа на заден план без ограничения',
+      batteryBad: 'Телефонът ограничава работата на заден план',
+      fix: 'Поправи',
     },
+    fullScreen: 'Аларма на цял екран',
+    fullScreenOn: 'Разрешена',
+    fullScreenOff: 'Изключена',
+    fullScreenNote: 'Без нея при заключен телефон езанът пак звучи, но се вижда само известие – не целият екран.',
+    fullScreenAllow: 'Разреши „Аларма на цял екран“',
+    exactOn: 'Разрешени',
+    background: 'Работа на заден план',
+    backgroundOk: 'Без ограничения',
+    backgroundBad: 'Ограничена',
+    batteryTitle: 'Алармите може да закъснеят',
+    batteryText: 'Телефонът може да спре приложението, за да пести батерия.',
+    batteryFix: 'Поправи',
   },
 
   qibla: {
@@ -217,6 +238,69 @@ export const bg = {
         : `Изгрев на ${azimuth}° – Киблата е ${degrees}° ${side === 'right' ? 'вдясно' : 'вляво'} от него`,
   },
 
+  alarm: {
+    app: 'Езан',
+    title: (prayer: string) => `Време е за ${prayer}`,
+    stop: 'Спри езана',
+    mute: 'Заглуши звука',
+    muteShort: 'Заглуши',
+    close: 'Затвори',
+    soundName: 'Езан',
+    channel: 'Аларма за молитва',
+    testTitle: 'Пробна аларма',
+  },
+
+  battery: {
+    title: 'Работа на заден план',
+    lede: 'За да пести батерия, телефонът може да „приспи“ Езан и алармата да закъснее или да не звънне. Разреши на приложението да работи без ограничения.',
+    yourPhone: 'Твоят телефон',
+    open: 'Отвори настройките на Езан',
+    openList: 'Списък „Оптимизация на батерията“',
+    now: 'Сега',
+    ok: 'без ограничения ✓',
+    bad: 'ограничено',
+    unknown: 'не може да се провери',
+    otherPhone: 'Друг телефон?',
+    more: 'Още съвети за всяка марка: dontkillmyapp.com',
+    brands: {
+      samsung: 'Samsung',
+      xiaomi: 'Xiaomi / Redmi / POCO',
+      huawei: 'Huawei / Honor',
+      oppo: 'OPPO / Realme / OnePlus',
+      other: 'Друг',
+    } as Record<BatteryBrand, string>,
+    // [текст, път (по желание), бележка (по желание)]
+    steps: {
+      samsung: [
+        ['Натисни бутона долу – отварят се настройките на Езан.'],
+        ['Отвори', 'Батерия'],
+        ['Избери', 'Без ограничения', 'Не „Оптимизирана“ и не „Ограничена“.'],
+        ['По желание:', 'Настройки → Батерия → Ограничения на фона', 'Езан да не е в „Приложения в дълбок сън“ и „Приложения в сън“.'],
+      ],
+      xiaomi: [
+        ['Натисни бутона долу – отварят се настройките на Езан.'],
+        ['Отвори', 'Пестене на батерия', 'Избери „Без ограничения“.'],
+        ['Включи', 'Автоматично стартиране'],
+        ['По желание: в последните приложения задръж картата на Езан и я заключи (катинарче).'],
+      ],
+      huawei: [
+        ['Отвори', 'Настройки → Батерия → Стартиране на приложения'],
+        ['Намери Езан и изключи', 'Управлявай автоматично'],
+        ['В прозореца включи и трите:', 'Автоматично стартиране · Вторично стартиране · Работа на заден план'],
+      ],
+      oppo: [
+        ['Натисни бутона долу – отварят се настройките на Езан.'],
+        ['Отвори', 'Използване на батерията'],
+        ['Включи', 'Разреши работа на заден план', 'и „Автоматично стартиране“, ако го има.'],
+      ],
+      other: [
+        ['Натисни бутона долу – отварят се настройките на Езан.'],
+        ['Отвори', 'Батерия'],
+        ['Избери', 'Без ограничения', 'На някои телефони се казва „Не оптимизирай“.'],
+      ],
+    } as Record<BatteryBrand, readonly (readonly string[])[]>,
+  },
+
   about: {
     title: 'За приложението',
     name: 'Езан',
@@ -231,6 +315,7 @@ export const bg = {
       adhan: { name: 'adhan', desc: 'Изчисление извън България · лиценз MIT' },
       osm: { name: 'OpenStreetMap', desc: 'Населени места в България · © OpenStreetMap contributors, ODbL' },
       ne: { name: 'Natural Earth', desc: 'Граница на България · public domain' },
+      geonames: { name: 'GeoNames', desc: 'Градове по света – името и държавата без интернет · CC BY 4.0' },
     },
     privacy:
       'Местоположението се ползва само на телефона – за да се изберат населеното място и часовете. Приложението не го изпраща никъде. Извън България телефонът пита своята картова услуга за името на града.',
@@ -244,6 +329,15 @@ export const bg = {
     Karachi: 'Университет в Карачи',
     UmmAlQura: 'Umm al-Qura (Мека)',
     NorthAmerica: 'ISNA (Северна Америка)',
+    Dubai: 'Дубай (ОАЕ)',
+    Kuwait: 'Кувейт',
+    Qatar: 'Катар',
+    Singapore: 'Сингапур (MUIS)',
+    Tehran: 'Техеран (Институт по геофизика)',
+    France: 'Франция (UOIF, 12°)',
+    Russia: 'Русия (ДУМ)',
+    Malaysia: 'Малайзия (JAKIM)',
+    Indonesia: 'Индонезия (Kemenag)',
   } as Record<CalculationMethodId, string>,
 
   highLatRules: {
@@ -367,6 +461,9 @@ export const en: Strings = {
     sourceMuftiNote: 'In Bulgaria the official calendar is used. Method and Asr apply only outside Bulgaria.',
     sourceCalc: 'Calculated for this place',
     method: 'Method',
+    methodAuto: 'Automatic',
+    methodAutoValue: (method) => `Auto · ${method}`,
+    methodAutoDesc: (country, method) => `by country: ${country} → ${method}`,
     asr: 'Asr',
     shafi: "Shafi'i, Maliki, Hanbali",
     hanafi: 'Hanafi',
@@ -461,7 +558,24 @@ export const en: Strings = {
       reset: 'Reschedule all notifications',
       resetHint: 'Deletes all Adhan notifications and schedules them again from the current settings. Use it if something looks wrong.',
       resetDone: '✓ All notifications have been scheduled again.',
+      fullScreenOk: 'Full-screen alarm',
+      fullScreenBad: 'Full-screen alarm is off',
+      batteryOk: 'Runs in the background without limits',
+      batteryBad: 'The phone limits background activity',
+      fix: 'Fix',
     },
+    fullScreen: 'Full-screen alarm',
+    fullScreenOn: 'Allowed',
+    fullScreenOff: 'Off',
+    fullScreenNote: 'Without it the adhan still plays on a locked phone, but you only see a notification – not the full screen.',
+    fullScreenAllow: 'Allow "Full-screen alarm"',
+    exactOn: 'Allowed',
+    background: 'Background activity',
+    backgroundOk: 'Unrestricted',
+    backgroundBad: 'Restricted',
+    batteryTitle: 'Alarms may be late',
+    batteryText: 'The phone may stop the app to save battery.',
+    batteryFix: 'Fix',
   },
 
   qibla: {
@@ -494,6 +608,68 @@ export const en: Strings = {
         : `Sunrise at ${azimuth}° – the Qibla is ${degrees}° to its ${side}`,
   },
 
+  alarm: {
+    app: 'Adhan',
+    title: (prayer) => `It's time for ${prayer}`,
+    stop: 'Stop adhan',
+    mute: 'Mute sound',
+    muteShort: 'Mute',
+    close: 'Close',
+    soundName: 'Adhan',
+    channel: 'Prayer alarm',
+    testTitle: 'Test alarm',
+  },
+
+  battery: {
+    title: 'Background activity',
+    lede: 'To save battery, the phone may put Adhan to sleep, and the alarm may be late or not ring at all. Let the app run without restrictions.',
+    yourPhone: 'Your phone',
+    open: 'Open Adhan settings',
+    openList: '"Battery optimization" list',
+    now: 'Now',
+    ok: 'unrestricted ✓',
+    bad: 'restricted',
+    unknown: "can't be checked",
+    otherPhone: 'Another phone?',
+    more: 'More tips for every brand: dontkillmyapp.com',
+    brands: {
+      samsung: 'Samsung',
+      xiaomi: 'Xiaomi / Redmi / POCO',
+      huawei: 'Huawei / Honor',
+      oppo: 'OPPO / Realme / OnePlus',
+      other: 'Other',
+    },
+    steps: {
+      samsung: [
+        ['Tap the button below – the Adhan settings open.'],
+        ['Open', 'Battery'],
+        ['Choose', 'Unrestricted', 'Not "Optimized" and not "Restricted".'],
+        ['Optional:', 'Settings → Battery → Background usage limits', 'Adhan should not be in "Deep sleeping apps" or "Sleeping apps".'],
+      ],
+      xiaomi: [
+        ['Tap the button below – the Adhan settings open.'],
+        ['Open', 'Battery saver', 'Choose "No restrictions".'],
+        ['Turn on', 'Autostart'],
+        ['Optional: in recent apps, hold the Adhan card and lock it (padlock).'],
+      ],
+      huawei: [
+        ['Open', 'Settings → Battery → App launch'],
+        ['Find Adhan and turn off', 'Manage automatically'],
+        ['In the window, turn on all three:', 'Auto-launch · Secondary launch · Run in background'],
+      ],
+      oppo: [
+        ['Tap the button below – the Adhan settings open.'],
+        ['Open', 'Battery usage'],
+        ['Turn on', 'Allow background activity', 'and "Auto launch", if it is there.'],
+      ],
+      other: [
+        ['Tap the button below – the Adhan settings open.'],
+        ['Open', 'Battery'],
+        ['Choose', 'Unrestricted', 'On some phones it is called "Don\'t optimize".'],
+      ],
+    },
+  },
+
   about: {
     title: 'About',
     name: 'Adhan',
@@ -508,6 +684,7 @@ export const en: Strings = {
       adhan: { name: 'adhan', desc: 'Calculation outside Bulgaria · MIT license' },
       osm: { name: 'OpenStreetMap', desc: 'Places in Bulgaria · © OpenStreetMap contributors, ODbL' },
       ne: { name: 'Natural Earth', desc: 'Border of Bulgaria · public domain' },
+      geonames: { name: 'GeoNames', desc: 'World cities – name and country without internet · CC BY 4.0' },
     },
     privacy:
       'Your location is used only on the phone to pick the place and the prayer times. The app does not send it anywhere. Outside Bulgaria the phone asks its map service for the city name.',
@@ -521,6 +698,15 @@ export const en: Strings = {
     Karachi: 'University of Karachi',
     UmmAlQura: 'Umm al-Qura (Makkah)',
     NorthAmerica: 'ISNA (North America)',
+    Dubai: 'Dubai (UAE)',
+    Kuwait: 'Kuwait',
+    Qatar: 'Qatar',
+    Singapore: 'Singapore (MUIS)',
+    Tehran: 'Tehran (Institute of Geophysics)',
+    France: 'France (UOIF, 12°)',
+    Russia: 'Russia (DUM)',
+    Malaysia: 'Malaysia (JAKIM)',
+    Indonesia: 'Indonesia (Kemenag)',
   },
 
   highLatRules: {

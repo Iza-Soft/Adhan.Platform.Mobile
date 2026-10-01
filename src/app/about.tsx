@@ -65,6 +65,7 @@ export default function AboutScreen() {
         <Group label={a.groupPlaces}>
           {source('osm', true)}
           {source('ne')}
+          {source('geonames')}
         </Group>
         <Group label={a.groupPrivacy}>
           <Row first>

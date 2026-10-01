@@ -4,6 +4,8 @@ import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { formatGregorianShort, formatHM } from '@/domain/format';
 import { useI18n } from '@/i18n';
+import { openFullScreenIntentSettings } from '../../../modules/adhan-native';
+
 import { openExactAlarmSettings, requestPermission, useNotificationStatus } from '@/services/notifications';
 import { REMINDER_CHOICES, useSettings } from '@/store/settings';
 import { colors } from '@/theme/colors';
@@ -58,21 +60,35 @@ export function NotificationsGroup() {
         </Pressable>
       )}
 
-      {granted && status.exact === false && (
-        <>
-          <Row>
-            <View style={styles.exactText}>
-              <View style={styles.exactHead}>
-                <Text style={settingsStyles.label}>{n.exact}</Text>
-                <Text style={[styles.value, styles.warn]}>{n.exactOff}</Text>
-              </View>
-              <Text style={styles.small}>{n.exactNote}</Text>
-            </View>
-          </Row>
-          <Pressable onPress={openExactAlarmSettings} accessibilityRole="button" style={styles.linkRow}>
-            <Text style={styles.link}>{n.exactAllow}</Text>
-          </Pressable>
-        </>
+      {granted && status.exact !== null && (
+        <StatusRow
+          label={n.exact}
+          ok={status.exact}
+          okText={n.exactOn}
+          badText={n.exactOff}
+          note={n.exactNote}
+          action={{ label: n.exactAllow, onPress: openExactAlarmSettings }}
+        />
+      )}
+
+      {/* Android, етап 5: алармата на цял екран и работата на заден план */}
+      {granted && status.fullScreen !== null && (
+        <StatusRow
+          label={n.fullScreen}
+          ok={status.fullScreen}
+          okText={n.fullScreenOn}
+          badText={n.fullScreenOff}
+          note={n.fullScreenNote}
+          action={{ label: n.fullScreenAllow, onPress: openFullScreenIntentSettings }}
+        />
+      )}
+      {granted && status.battery !== null && (
+        <NavRow
+          label={n.background}
+          value={status.battery ? n.backgroundOk : n.backgroundBad}
+          warn={!status.battery}
+          onPress={() => router.push('/battery')}
+        />
       )}
 
       {granted && (
@@ -94,6 +110,48 @@ export function NotificationsGroup() {
         </>
       )}
     </Group>
+  );
+}
+
+/** Ред със състояние: „Разрешени“ или (в оранжево) „Изключени“ + обяснение и връзка. */
+function StatusRow({
+  label,
+  ok,
+  okText,
+  badText,
+  note,
+  action,
+}: {
+  label: string;
+  ok: boolean;
+  okText: string;
+  badText: string;
+  note: string;
+  action: { label: string; onPress: () => void };
+}) {
+  if (ok) {
+    return (
+      <Row>
+        <Text style={settingsStyles.label}>{label}</Text>
+        <Text style={styles.value}>{okText}</Text>
+      </Row>
+    );
+  }
+  return (
+    <>
+      <Row>
+        <View style={styles.exactText}>
+          <View style={styles.exactHead}>
+            <Text style={settingsStyles.label}>{label}</Text>
+            <Text style={[styles.value, styles.warn]}>{badText}</Text>
+          </View>
+          <Text style={styles.small}>{note}</Text>
+        </View>
+      </Row>
+      <Pressable onPress={action.onPress} accessibilityRole="button" style={styles.linkRow}>
+        <Text style={styles.link}>{action.label}</Text>
+      </Pressable>
+    </>
   );
 }
 

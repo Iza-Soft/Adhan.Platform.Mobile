@@ -8,8 +8,15 @@ import {
   DEFAULT_MADHAB,
   DEFAULT_METHOD,
 } from '@/config/defaults';
-import type { AsrMadhab, CalculationMethodId, HighLatRuleId } from '@/domain/calc';
+import {
+  methodForCountry,
+  type AsrMadhab,
+  type CalculationMethodId,
+  type HighLatRuleId,
+  type MethodChoice,
+} from '@/domain/calc';
 import type { AppLocation } from '@/domain/location';
+import { countryOf } from '@/domain/resolve';
 import type { PrayerId } from '@/domain/prayers';
 import type { TimesOptions } from '@/domain/times';
 
@@ -38,7 +45,8 @@ interface SettingsState {
   /** Ръчно избраното място. */
   manualLocation: AppLocation | null;
 
-  method: CalculationMethodId;
+  /** 'auto' – според държавата (виж methodForCountry). */
+  method: MethodChoice;
   madhab: AsrMadhab;
   highLatRule: HighLatRuleId;
   offsets: Record<PrayerId, number>;
@@ -51,7 +59,7 @@ interface SettingsState {
   setAutoLocation: (on: boolean) => void;
   setGpsLocation: (loc: AppLocation) => void;
   chooseLocation: (loc: AppLocation) => void;
-  setMethod: (m: CalculationMethodId) => void;
+  setMethod: (m: MethodChoice) => void;
   setMadhab: (m: AsrMadhab) => void;
   setHighLatRule: (r: HighLatRuleId) => void;
   changeOffset: (id: PrayerId, delta: number) => void;
@@ -92,7 +100,14 @@ export const useSettings = create<SettingsState>()(
     }),
     {
       name: 'ezan.settings',
-      version: 1,
+      // 2 (етап 5): методът по подразбиране е „Автоматично“ – старият „Диянет“ по подразбиране
+      // става „Автоматично“ (за Турция и Европа пак е Диянет)
+      version: 2,
+      migrate: (persisted, version) => {
+        const state = persisted as Partial<SettingsState>;
+        if (version < 2 && state.method === 'Turkey') state.method = 'auto';
+        return state as SettingsState;
+      },
       storage: createJSONStorage(() => AsyncStorage),
       // новите полета (reminderMinutes, vibrate) липсват в старите записи – тогава важат стойностите по подразбиране
       partialize: ({
@@ -135,19 +150,24 @@ export function buildTimesOptions({ location, method, madhab, highLatRule, offse
   options: TimesOptions;
   key: string;
 } {
-  const options: TimesOptions = { location, method, madhab, highLatRule, offsets };
+  const options: TimesOptions = { location, method: resolveMethod(method, location), madhab, highLatRule, offsets };
   const key = JSON.stringify([
     location.id,
     location.latitude,
     location.longitude,
     location.source,
     location.muftiShift,
-    method,
+    options.method,
     madhab,
     highLatRule,
     offsets,
   ]);
   return { options, key };
+}
+
+/** „Автоматично“ → методът за държавата на мястото; иначе избраният. */
+export function resolveMethod(method: MethodChoice, location: AppLocation): CalculationMethodId {
+  return method === 'auto' ? methodForCountry(countryOf(location)) : method;
 }
 
 /** Същото, направо от състоянието – без React (ползва се и от известията във фонов режим). */

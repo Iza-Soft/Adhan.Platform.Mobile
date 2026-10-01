@@ -14,13 +14,86 @@ import { PRAYER_IDS, type PrayerTime } from './prayers';
 export const CALC_METHODS = [
   'Turkey',
   'MuslimWorldLeague',
-  'MoonsightingCommittee',
+  'NorthAmerica',
+  'UmmAlQura',
   'Egyptian',
   'Karachi',
-  'UmmAlQura',
-  'NorthAmerica',
+  'MoonsightingCommittee',
+  'Dubai',
+  'Kuwait',
+  'Qatar',
+  'Singapore',
+  'Tehran',
+  'France',
+  'Russia',
+  'Malaysia',
+  'Indonesia',
 ] as const;
 export type CalculationMethodId = (typeof CALC_METHODS)[number];
+
+/** В настройките: конкретен метод или „Автоматично“ – според държавата. */
+export type MethodChoice = CalculationMethodId | 'auto';
+
+/**
+ * Методите, които ги няма в adhan – ъглите на Слънцето под хоризонта за Фаджр и Иша.
+ * Франция – UOIF (12°/12°); Русия – Духовното управление на мюсюлманите (16°/15°);
+ * Малайзия – JAKIM и Индонезия – Kemenag (20°/18°).
+ */
+const CUSTOM_ANGLES: Partial<Record<CalculationMethodId, [number, number]>> = {
+  France: [12, 12],
+  Russia: [16, 15],
+  Malaysia: [20, 18],
+  Indonesia: [20, 18],
+};
+
+function methodParams(method: CalculationMethodId) {
+  const custom = CUSTOM_ANGLES[method];
+  if (custom) {
+    const params = CalculationMethod.Other();
+    params.fajrAngle = custom[0];
+    params.ishaAngle = custom[1];
+    return params;
+  }
+  return CalculationMethod[method as Exclude<CalculationMethodId, 'France' | 'Russia' | 'Malaysia' | 'Indonesia'>]();
+}
+
+/** Европа (без Франция, Великобритания и Ирландия): Диянет – както в джамиите на Диянет в Европа. */
+const EUROPE_DIYANET = new Set(
+  'AD AL AT AZ BA BE BY CH CY CZ DE DK EE ES FI GE GR HR HU IS IT LI LT LU LV MC MD ME MK MT NL NO PL PT RO RS SE SI SK SM UA VA XK TR'.split(
+    ' ',
+  ),
+);
+
+const BY_COUNTRY: Record<string, CalculationMethodId> = {
+  US: 'NorthAmerica',
+  CA: 'NorthAmerica',
+  SA: 'UmmAlQura',
+  EG: 'Egyptian',
+  PK: 'Karachi',
+  IN: 'Karachi',
+  BD: 'Karachi',
+  AF: 'Karachi',
+  FR: 'France',
+  GB: 'MoonsightingCommittee',
+  IE: 'MoonsightingCommittee',
+  RU: 'Russia',
+  MY: 'Malaysia',
+  BN: 'Malaysia',
+  ID: 'Indonesia',
+  AE: 'Dubai',
+  KW: 'Kuwait',
+  QA: 'Qatar',
+  SG: 'Singapore',
+  IR: 'Tehran',
+};
+
+/** Методът по подразбиране за държавата (ISO код). Непозната – Muslim World League. */
+export function methodForCountry(country: string | null | undefined): CalculationMethodId {
+  const c = country?.toUpperCase() ?? '';
+  if (BY_COUNTRY[c]) return BY_COUNTRY[c];
+  if (EUROPE_DIYANET.has(c)) return 'Turkey';
+  return 'MuslimWorldLeague';
+}
 
 export type AsrMadhab = 'shafi' | 'hanafi';
 
@@ -100,7 +173,7 @@ function calcAt(
   madhab: AsrMadhab,
   highLatRule: HighLatRuleId,
 ): PrayerTime[] {
-  const params = CalculationMethod[method]();
+  const params = methodParams(method);
   params.madhab = madhab === 'hanafi' ? Madhab.Hanafi : Madhab.Shafi;
   if (isHighLatitude(latitude)) {
     params.highLatitudeRule =

@@ -1,27 +1,47 @@
 package expo.modules.adhannative
 
 import android.app.AlarmManager
+import android.app.NotificationManager
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
+import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
 /**
- * Малкият native модул на Езан (само Android).
- * Етап 4: точни известия (Android 12+). В етап 5 тук идват алармата с пълния езан
- * и местоположението без Google услуги.
+ * Native модулът на Езан (само Android):
+ * - етап 4: точни известия (Android 12+);
+ * - етап 5: алармата с пълния езан (AlarmManager.setAlarmClock + foreground service +
+ *   екран „Аларма“), аларма на цял екран (Android 14+), работа на заден план
+ *   (оптимизация на батерията) и местоположение без Google услуги (Huawei).
  */
 class AdhanNativeModule : Module() {
   private val context: Context
     get() = appContext.reactContext ?: throw Exceptions.ReactContextLost()
 
+  private val packageUri: Uri
+    get() = Uri.parse("package:${context.packageName}")
+
+  private fun open(intent: Intent, fallback: Intent? = null) {
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    try {
+      context.startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+      val f = fallback ?: Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageUri)
+      context.startActivity(f.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
+  }
+
   override fun definition() = ModuleDefinition {
     Name("AdhanNative")
+
+    /* -------------------------------------------------- точни аларми (етап 4) */
 
     // Може ли приложението да планира точни аларми. До Android 12 – винаги да.
     // От Android 14 разрешението „Аларми и напомняния“ е изключено по подразбиране.
@@ -37,20 +57,92 @@ class AdhanNativeModule : Module() {
     // Отваря системния екран „Аларми и напомняния“ за Езан.
     // Ако производителят го е махнал – екрана с информация за приложението.
     Function("openExactAlarmSettings") {
-      val packageUri = Uri.parse("package:${context.packageName}")
       val intent =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
           Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, packageUri)
         } else {
           Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageUri)
         }
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      try {
-        context.startActivity(intent)
-      } catch (e: ActivityNotFoundException) {
-        context.startActivity(
-          Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageUri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        )
+      open(intent)
+    }
+
+    /* -------------------------------------------------- алармата с езана (етап 5) */
+
+    // Заменя всички аларми (JSON масив, виж AlarmData). Връща колко са планирани.
+    Function("setAlarms") { json: String ->
+      AlarmScheduler.setAlarms(context, json)
+    }
+
+    // Запазеният списък (JSON) – за „Проверка на известията“.
+    Function("getAlarms") {
+      AlarmScheduler.storedJson(context)
+    }
+
+    // Последните звъннали аларми (JSON): планиран и истински час.
+    Function("getAlarmHistory") {
+      AlarmScheduler.historyJson(context)
+    }
+
+    // Пробна аларма след delayMs.
+    Function("testAlarm") { json: String, delayMs: Double ->
+      AlarmScheduler.scheduleTest(context, json, delayMs.toLong())
+    }
+
+    Function("stopAlarm") {
+      AlarmService.command(context, AlarmService.ACTION_STOP)
+    }
+
+    /* -------------------------------------------------- аларма на цял екран (Android 14+) */
+
+    Function("canUseFullScreenIntent") {
+      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        true
+      } else {
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.canUseFullScreenIntent()
+      }
+    }
+
+    Function("openFullScreenIntentSettings") {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        open(Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, packageUri))
+      } else {
+        open(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageUri))
+      }
+    }
+
+    /* -------------------------------------------------- работа на заден план */
+
+    // true – телефонът не ограничава Езан (оптимизацията на батерията е изключена за него).
+    Function("isIgnoringBatteryOptimizations") {
+      val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+      pm.isIgnoringBatteryOptimizations(context.packageName)
+    }
+
+    // Настройките на Езан в телефона (оттам: Батерия → Без ограничения).
+    Function("openAppSettings") {
+      open(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageUri))
+    }
+
+    // Списъкът „Оптимизация на батерията“ на Android.
+    Function("openBatteryOptimizationSettings") {
+      open(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+    }
+
+    /* -------------------------------------------------- местоположение без Google (Huawei) */
+
+    Function("hasGoogleServices") {
+      NativeLocation.hasGoogleServices(context)
+    }
+
+    AsyncFunction("getCurrentLocation") { timeoutMs: Double, promise: Promise ->
+      val ctx = context
+      if (!NativeLocation.hasPermission(ctx)) {
+        promise.resolve(null)
+        return@AsyncFunction
+      }
+      NativeLocation.current(ctx, timeoutMs.toLong()) { location ->
+        promise.resolve(location?.let { NativeLocation.toMap(it) })
       }
     }
   }

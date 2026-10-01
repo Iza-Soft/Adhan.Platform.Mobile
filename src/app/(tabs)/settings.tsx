@@ -5,6 +5,7 @@ import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, Vi
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GeometricPattern } from '@/components/GeometricPattern';
+import { BatteryWarning } from '@/components/settings/BatteryWarning';
 import { NotificationsGroup } from '@/components/settings/NotificationsGroup';
 import { PinIcon } from '@/components/icons';
 import {
@@ -17,8 +18,10 @@ import {
   settingsStyles,
 } from '@/components/settings/controls';
 import { useTabBarHeight } from '@/components/TabBar';
-import { CALC_METHODS, HIGH_LAT_RULES, isHighLatitude, isPolar } from '@/domain/calc';
+import { CALC_METHODS, HIGH_LAT_RULES, isHighLatitude, isPolar, methodForCountry, type MethodChoice } from '@/domain/calc';
 import { PRAYER_IDS } from '@/domain/prayers';
+import { countryOf } from '@/domain/resolve';
+import { countryName } from '@/domain/worldCities';
 import { useI18n } from '@/i18n';
 import { refreshLocation, useLocationStatus } from '@/services/location';
 import { selectLocation, useSettings } from '@/store/settings';
@@ -37,6 +40,9 @@ export default function SettingsScreen() {
   const [open, setOpen] = useState<'method' | 'asr' | 'highLat' | null>(null);
 
   const isCalc = location.source === 'calc';
+  // „Автоматично“: държавата на мястото и методът за нея
+  const country = isCalc ? countryOf(location) : null;
+  const autoMethod = methodForCountry(country);
   const highLat = isCalc && isHighLatitude(location.latitude);
   const anyOffset = PRAYER_IDS.some((id) => s.offsets[id] !== 0);
   const toggle = (what: 'method' | 'asr' | 'highLat') => setOpen((cur) => (cur === what ? null : what));
@@ -51,6 +57,7 @@ export default function SettingsScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.title}>{t.settings.title}</Text>
+        <BatteryWarning />
 
         {/* ---- Място ---- */}
         <Group label={t.settings.groupPlace}>
@@ -113,10 +120,22 @@ export default function SettingsScreen() {
                   : t.settings.asrNote
             }
           >
-            <NavRow first label={t.settings.method} value={t.methods[s.method]} onPress={() => toggle('method')} />
+            <NavRow
+              first
+              label={t.settings.method}
+              value={s.method === 'auto' ? t.settings.methodAutoValue(t.methods[autoMethod]) : t.methods[s.method]}
+              onPress={() => toggle('method')}
+            />
             {open === 'method' && (
-              <Choice
-                options={CALC_METHODS.map((m) => ({ value: m, label: t.methods[m] }))}
+              <Choice<MethodChoice>
+                options={[
+                  {
+                    value: 'auto',
+                    label: t.settings.methodAuto,
+                    desc: t.settings.methodAutoDesc(country ? countryName(country, lang) : '—', t.methods[autoMethod]),
+                  },
+                  ...CALC_METHODS.map((m) => ({ value: m, label: t.methods[m] })),
+                ]}
                 value={s.method}
                 onChange={(m) => {
                   s.setMethod(m);

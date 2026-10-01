@@ -2,10 +2,22 @@ import * as Notifications from 'expo-notifications';
 import { Linking, Platform } from 'react-native';
 import { create } from 'zustand';
 
-import { canScheduleExactAlarms, openExactAlarmSettings } from '../../modules/adhan-native';
+import {
+  canScheduleExactAlarms,
+  canUseFullScreenIntent,
+  hasNativeAlarms,
+  isIgnoringBatteryOptimizations,
+  openExactAlarmSettings,
+  setAlarms,
+  testAlarm,
+  type NativeAlarm,
+} from '../../modules/adhan-native';
 
+import { formatHM } from '@/domain/format';
 import { planNotifications, type PlannedNotification, type SoundKind } from '@/domain/notifications';
+import { PRAYERS, type PrayerId } from '@/domain/prayers';
 import { getI18n } from '@/i18n';
+import { PHASE_GRADIENTS } from '@/theme/gradients';
 import { useAlertPrefs } from '@/store/alertPrefs';
 import { selectLocation, selectTimesOptions, useSettings } from '@/store/settings';
 
@@ -25,9 +37,15 @@ interface NotificationStatus {
   canAskAgain: boolean;
   /** Android 12+: точни известия („Аларми и напомняния“); null – неприложимо. */
   exact: boolean | null;
-  /** Колко известия са планирани и до кога. */
+  /** Колко известия са планирани и до кога (заедно с алармите). */
   count: number;
   until: Date | null;
+  /** Android 14+: „Аларма на цял екран“; null – неприложимо. */
+  fullScreen: boolean | null;
+  /** Android: true – без ограничения на батерията; null – неприложимо. */
+  battery: boolean | null;
+  /** Колко аларми с езан са планирани в native частта (Android). */
+  alarms: number;
 }
 
 export const useNotificationStatus = create<NotificationStatus>(() => ({
@@ -37,6 +55,9 @@ export const useNotificationStatus = create<NotificationStatus>(() => ({
   exact: null,
   count: 0,
   until: null,
+  fullScreen: null,
+  battery: null,
+  alarms: 0,
 }));
 
 const SUPPORTED = Platform.OS === 'android' || Platform.OS === 'ios';
@@ -147,6 +168,8 @@ export async function refreshPermission(): Promise<NotificationPermission> {
     permission,
     canAskAgain: p.canAskAgain,
     exact: canScheduleExactAlarms(),
+    fullScreen: canUseFullScreenIntent(),
+    battery: isIgnoringBatteryOptimizations(),
   });
   return permission;
 }
@@ -227,6 +250,18 @@ async function doReschedule(): Promise<void> {
 
   await setupChannels(s.vibrate);
 
+  // Android (етап 5): езанът е истинска аларма в native частта – пълен звук, „Спри“,
+  // екран „Аларма“. Без точни аларми (setAlarmClock не става) – остава звукът на известието.
+  let alarmCount = 0;
+  let notifications = plan;
+  if (nativeAlarmsEnabled(exact)) {
+    const alarms = plan.filter(isAlarm);
+    notifications = plan.filter((n) => !isAlarm(n));
+    alarmCount = Math.max(0, setAlarms(alarms.map((n) => toNativeAlarm(n, s.vibrate, selectLocation(s).names[lang]))));
+  } else if (hasNativeAlarms()) {
+    setAlarms([]);
+  }
+
   // Сравнява с вече планираните: трие само променените и липсващите, добавя само новите.
   const existing = await Notifications.getAllScheduledNotificationsAsync();
   const ours = new Map(
@@ -235,7 +270,7 @@ async function doReschedule(): Promise<void> {
       .map((r) => [r.identifier, (r.content.data as { sig?: string } | null)?.sig ?? '']),
   );
 
-  const wanted = plan.map((n) => {
+  const wanted = notifications.map((n) => {
     const channel = channelId(channelFor(n), s.vibrate);
     return { n, channel, sig: signatureOf(n, channel, exact) };
   });
@@ -274,7 +309,68 @@ async function doReschedule(): Promise<void> {
   useNotificationStatus.setState({
     count: plan.length,
     until: plan.length ? plan[plan.length - 1].at : null,
+    alarms: alarmCount,
   });
+}
+
+/* ------------------------------------------------------------------ алармата (Android, етап 5) */
+
+const isAlarm = (n: PlannedNotification) => n.kind === 'prayer' && n.sound === 'adhan' && n.prayer !== null;
+
+/** Native алармата се ползва, ако я има в build-а и точните аларми не са забранени. */
+function nativeAlarmsEnabled(exact: boolean | null): boolean {
+  return Platform.OS === 'android' && hasNativeAlarms() && exact !== false;
+}
+
+/** Едно известие от плана → аларма за native частта, с всички текстове на езика на телефона. */
+function toNativeAlarm(n: PlannedNotification, vibrate: boolean, place: string): NativeAlarm {
+  const { lang, t } = getI18n();
+  const prayer = (n.prayer ?? 'dhuhr') as PrayerId;
+  const name = t.prayers[prayer];
+  return {
+    id: n.id,
+    at: n.at.getTime(),
+    prayer,
+    title: t.alarm.title(name),
+    arabic: PRAYERS[prayer].arabic,
+    place,
+    notifTitle: n.title,
+    notifBody: n.body,
+    colors: [...PHASE_GRADIENTS[prayer]] as [string, string, string],
+    vibrate,
+    sound: SOUND_FILE.adhan.replace(/\.wav$/, ''),
+    lang,
+    labels: {
+      app: t.alarm.app,
+      stop: t.alarm.stop,
+      mute: t.alarm.mute,
+      muteShort: t.alarm.muteShort,
+      close: t.alarm.close,
+      soundName: t.alarm.soundName,
+      channel: t.alarm.channel,
+    },
+  };
+}
+
+/**
+ * Пробна аларма след 10 сек. в native частта (екранът „Аларма“ и пълният звук).
+ * false – няма native аларма (тогава – пробното известие със звука на езана).
+ */
+function sendTestAlarm(at: number): boolean {
+  if (!nativeAlarmsEnabled(useNotificationStatus.getState().exact)) return false;
+  const { t } = getI18n();
+  const s = useSettings.getState();
+  const place = selectLocation(s).names[getI18n().lang];
+  const n: PlannedNotification = {
+    id: 'test',
+    at: new Date(at),
+    kind: 'prayer',
+    prayer: 'maghrib',
+    sound: 'adhan',
+    title: `${t.alarm.testTitle} – ${formatHM(new Date(at))}`,
+    body: t.notifications.testBody,
+  };
+  return testAlarm(toNativeAlarm(n, s.vibrate, place), at - Date.now());
 }
 
 /** Трие всички известия на Езан и ги планира наново (от „Проверка на известията“). */
@@ -293,6 +389,7 @@ export async function resetAllNotifications(): Promise<void> {
 export async function sendTestNotification(sound: SoundKind): Promise<number> {
   const at = Date.now() + 10_000;
   if (!SUPPORTED) return at;
+  if (sound === 'adhan' && sendTestAlarm(at)) return at;
   const s = useSettings.getState();
   await setupChannels(s.vibrate);
   const { t } = getI18n();

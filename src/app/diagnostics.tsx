@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { getAlarmHistory, getAlarms, openFullScreenIntentSettings } from '../../modules/adhan-native';
+
 import { GeometricPattern } from '@/components/GeometricPattern';
 import { AlertIcon, ChevronDownIcon, ChevronIcon } from '@/components/icons';
 import { formatGregorianShort, formatHM } from '@/domain/format';
@@ -59,11 +61,23 @@ async function fetchSnapshot(): Promise<Snapshot> {
     Notifications.getAllScheduledNotificationsAsync(),
     Notifications.getPresentedNotificationsAsync(),
   ]);
+  // Android, етап 5: алармите с езана са в native частта, не в expo-notifications
+  const now = Date.now();
+  const alarms = getAlarms()
+    .filter((a) => a.at > now)
+    .map((a) => ({ id: a.id, at: new Date(a.at), title: a.notifTitle, kind: 'alarm' as Kind }));
+  const fired = getAlarmHistory().map((h) => ({
+    id: `alarm-${h.id}-${h.fired}`,
+    planned: new Date(h.planned),
+    shown: new Date(h.fired),
+    title: h.title,
+  }));
   return {
     loadedAt: new Date(),
     channels: channels.filter((c) => !c.id.startsWith('expo_')),
     upcoming: scheduled
       .map((r) => ({ id: r.identifier, at: atOf(r.content.data) ?? new Date(0), title: r.content.title ?? '', kind: kindOf(r) }))
+      .concat(alarms)
       .sort((a, b) => a.at.getTime() - b.at.getTime()),
     recent: presented
       .map((n) => ({
@@ -72,6 +86,7 @@ async function fetchSnapshot(): Promise<Snapshot> {
         shown: new Date(n.date),
         title: n.request.content.title ?? '',
       }))
+      .concat(fired)
       .sort((a, b) => b.shown.getTime() - a.shown.getTime()),
   };
 }
@@ -218,6 +233,20 @@ export default function DiagnosticsScreen() {
               ok={status.exact}
               text={status.exact ? d.exactOk : d.exactBad}
               action={status.exact ? undefined : { label: d.allow, onPress: openExactAlarmSettings }}
+            />
+          )}
+          {granted && status.fullScreen !== null && (
+            <Check
+              ok={status.fullScreen}
+              text={status.fullScreen ? d.fullScreenOk : d.fullScreenBad}
+              action={status.fullScreen ? undefined : { label: d.allow, onPress: openFullScreenIntentSettings }}
+            />
+          )}
+          {granted && status.battery !== null && (
+            <Check
+              ok={status.battery}
+              text={status.battery ? d.batteryOk : d.batteryBad}
+              action={status.battery ? undefined : { label: d.fix, onPress: () => router.push('/battery') }}
             />
           )}
           <Check ok={status.count > 0} text={status.count > 0 ? d.scheduledOk(status.count, until) : d.scheduledNone} />

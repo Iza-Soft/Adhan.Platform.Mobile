@@ -27,11 +27,14 @@ export function NavRow({
   value,
   onPress,
   first,
+  warn,
 }: {
   label: string;
   value?: string;
   onPress: () => void;
   first?: boolean;
+  /** Стойността в оранжево – нещо не е наред. */
+  warn?: boolean;
 }) {
   return (
     <Pressable
@@ -41,7 +44,7 @@ export function NavRow({
     >
       <Text style={styles.label}>{label}</Text>
       {value ? (
-        <Text style={styles.value} numberOfLines={1}>
+        <Text style={[styles.value, warn && { color: colors.warn }]} numberOfLines={1}>
           {value}
         </Text>
       ) : null}

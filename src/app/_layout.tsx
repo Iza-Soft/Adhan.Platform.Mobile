@@ -86,6 +86,7 @@ export default function RootLayout() {
         <Stack.Screen name="place" options={{ presentation: 'modal' }} />
         <Stack.Screen name="about" />
         <Stack.Screen name="diagnostics" />
+        <Stack.Screen name="battery" />
       </Stack>
     </>
   );

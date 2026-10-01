@@ -1,9 +1,103 @@
 -- Merging decision tree log ---
 manifest
-ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:1:1-2:12
-INJECTED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:1:1-2:12
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:1:1-51:12
+INJECTED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:1:1-51:12
 	package
 		INJECTED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:1:11-69
+uses-permission#android.permission.WAKE_LOCK
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:3:3-66
+	android:name
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:3:20-63
+uses-permission#android.permission.VIBRATE
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:4:3-64
+	android:name
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:4:20-61
+uses-permission#android.permission.FOREGROUND_SERVICE
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:5:3-75
+	android:name
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:5:20-72
+uses-permission#android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:6:3-90
+	android:name
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:6:20-87
+uses-permission#android.permission.USE_FULL_SCREEN_INTENT
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:7:3-79
+	android:name
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:7:20-76
+uses-permission#android.permission.RECEIVE_BOOT_COMPLETED
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:8:3-79
+	android:name
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:8:20-76
+queries
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:11:3-13:13
+package#com.google.android.gms
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:12:5-54
+	android:name
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:12:14-51
+application
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:15:3-50:17
+activity#expo.modules.adhannative.AlarmActivity
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:17:5-25:67
+	android:turnScreenOn
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:21:7-34
+	android:excludeFromRecents
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:22:7-40
+	android:showWhenLocked
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:20:7-36
+	android:launchMode
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:23:7-42
+	android:exported
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:19:7-31
+	android:theme
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:25:7-64
+	android:taskAffinity
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:24:7-52
+	android:name
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:18:7-60
+service#expo.modules.adhannative.AlarmService
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:28:5-31:55
+	android:exported
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:30:7-31
+	android:foregroundServiceType
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:31:7-52
+	android:name
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:29:7-59
+receiver#expo.modules.adhannative.AlarmReceiver
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:34:5-36:34
+	android:exported
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:36:7-31
+	android:name
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:35:7-60
+receiver#expo.modules.adhannative.BootReceiver
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:39:5-49:16
+	android:exported
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:41:7-30
+	android:name
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:40:7-59
+intent-filter#action:name:android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED+action:name:android.intent.action.BOOT_COMPLETED+action:name:android.intent.action.MY_PACKAGE_REPLACED+action:name:android.intent.action.TIMEZONE_CHANGED+action:name:android.intent.action.TIME_SET
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:42:7-48:23
+action#android.intent.action.BOOT_COMPLETED
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:43:9-71
+	android:name
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:43:17-68
+action#android.intent.action.MY_PACKAGE_REPLACED
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:44:9-76
+	android:name
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:44:17-73
+action#android.intent.action.TIME_SET
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:45:9-65
+	android:name
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:45:17-62
+action#android.intent.action.TIMEZONE_CHANGED
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:46:9-73
+	android:name
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:46:17-70
+action#android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED
+ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:47:9-99
+	android:name
+		ADDED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml:47:17-96
 uses-sdk
 INJECTED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from C:\Projects\Iza-Soft\Adhan.Platform.Mobile\modules\adhan-native\android\src\main\AndroidManifest.xml
