@@ -186,6 +186,37 @@ export const bg = {
     },
   },
 
+  qibla: {
+    title: 'Кибла',
+    fromNorth: 'от север',
+    toMecca: 'до Мека',
+    km: 'км',
+    aligned: '✓ Обърнат си към Кибла',
+    turnLabel: (direction: 'left' | 'right') => `Завърти се ${direction === 'right' ? 'надясно' : 'наляво'}`,
+    starting: 'Компасът се включва…',
+    quality: { high: 'висока', medium: 'средна', low: 'ниска' } as Record<'high' | 'medium' | 'low', string>,
+    accuracy: (q: string) => `Компас: ${q} точност`,
+    tip: 'Дръж телефона хоризонтално, с екрана нагоре. Метал и магнити наблизо объркват компаса.',
+    calibrateTitle: 'Калибрирай компаса',
+    calibrateText: 'Движи телефона като осмица във въздуха 2–3 пъти. Дръж го далеч от метал, магнити и магнитни калъфи.',
+    noCompassTitle: 'Няма компас',
+    noCompassText: (deg: number) =>
+      `Този телефон няма магнитен сензор. Киблата е на ${deg}° от север: застани с лице на север и се завърти надясно на ${deg}°.`,
+    permissionTitle: 'Нужно е разрешение',
+    permissionText: 'На iPhone компасът работи само с разрешение за местоположение.',
+    allowLocation: 'Разреши местоположението',
+    letters: ['С', 'И', 'Ю', 'З'] as readonly string[],
+    a11yDial: (bearing: number) => `Компас. Киблата е на ${bearing}° от север.`,
+    // {t} е часът – показва се удебелен и златен
+    sunToday: 'Днес в {t} слънцето е точно в посоката на Киблата',
+    sunTomorrow: 'Утре в {t} слънцето ще е точно в посоката на Киблата',
+    sunNow: 'Сега слънцето е точно в посоката на Киблата',
+    sunrise: (azimuth: number, degrees: number, side: 'left' | 'right' | 'same') =>
+      side === 'same'
+        ? `Изгрев на ${azimuth}° – точно в посоката на Киблата`
+        : `Изгрев на ${azimuth}° – Киблата е ${degrees}° ${side === 'right' ? 'вдясно' : 'вляво'} от него`,
+  },
+
   about: {
     title: 'За приложението',
     name: 'Езан',
@@ -431,6 +462,36 @@ export const en: Strings = {
       resetHint: 'Deletes all Adhan notifications and schedules them again from the current settings. Use it if something looks wrong.',
       resetDone: '✓ All notifications have been scheduled again.',
     },
+  },
+
+  qibla: {
+    title: 'Qibla',
+    fromNorth: 'from north',
+    toMecca: 'to Mecca',
+    km: 'km',
+    aligned: '✓ You are facing the Qibla',
+    turnLabel: (direction) => `Turn ${direction}`,
+    starting: 'Starting the compass…',
+    quality: { high: 'high', medium: 'medium', low: 'low' },
+    accuracy: (q) => `Compass: ${q} accuracy`,
+    tip: 'Hold the phone flat, screen up. Metal and magnets nearby confuse the compass.',
+    calibrateTitle: 'Calibrate the compass',
+    calibrateText: 'Move the phone in a figure-eight in the air 2–3 times. Keep it away from metal, magnets and magnetic cases.',
+    noCompassTitle: 'No compass',
+    noCompassText: (deg) =>
+      `This phone has no magnetic sensor. The Qibla is ${deg}° from north: face north and turn right by ${deg}°.`,
+    permissionTitle: 'Permission needed',
+    permissionText: 'On iPhone the compass works only with location permission.',
+    allowLocation: 'Allow location',
+    letters: ['N', 'E', 'S', 'W'],
+    a11yDial: (bearing) => `Compass. The Qibla is ${bearing}° from north.`,
+    sunToday: 'Today at {t} the sun is exactly in the Qibla direction',
+    sunTomorrow: 'Tomorrow at {t} the sun will be exactly in the Qibla direction',
+    sunNow: 'Right now the sun is exactly in the Qibla direction',
+    sunrise: (azimuth, degrees, side) =>
+      side === 'same'
+        ? `Sunrise at ${azimuth}° – exactly in the Qibla direction`
+        : `Sunrise at ${azimuth}° – the Qibla is ${degrees}° to its ${side}`,
   },
 
   about: {
