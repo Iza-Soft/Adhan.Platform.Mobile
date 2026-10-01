@@ -10,17 +10,19 @@ interface Props {
   /** Готов текст за TalkBack/VoiceOver на текущия език. */
   accessibilityLabel: string;
   onPress: () => void;
+  /** Известията не са разрешени – камбанката е бледа: нищо няма да прозвучи. */
+  muted?: boolean;
 }
 
 /** Сиво = изключено, бяло = нотификация, злато = езан. */
-export function BellButton({ mode, accessibilityLabel, onPress }: Props) {
+export function BellButton({ mode, accessibilityLabel, onPress, muted }: Props) {
   const iconColor = mode === 'adhan' ? colors.goldInk : mode === 'notify' ? colors.text : colors.muted;
 
   return (
     <Pressable
       onPress={onPress}
       hitSlop={6}
-      style={({ pressed }) => [styles.btn, styles[mode], pressed && styles.pressed]}
+      style={({ pressed }) => [styles.btn, styles[mode], muted && styles.muted, pressed && styles.pressed]}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
     >
@@ -40,5 +42,6 @@ const styles = StyleSheet.create({
   off: { backgroundColor: 'transparent' },
   notify: { backgroundColor: colors.bellNotify },
   adhan: { backgroundColor: colors.gold },
+  muted: { opacity: 0.3 },
   pressed: { transform: [{ scale: 0.92 }] },
 });

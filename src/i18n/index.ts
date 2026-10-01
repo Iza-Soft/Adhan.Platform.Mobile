@@ -1,4 +1,4 @@
-import { useLocales } from 'expo-localization';
+import { getLocales, useLocales } from 'expo-localization';
 
 import { bg, en, type Strings } from './strings';
 
@@ -26,3 +26,9 @@ export function useI18n(): { lang: Lang; t: Strings } {
 }
 
 export type { Strings };
+
+/** Същото без React – за известията, които се планират и във фонов режим. */
+export function getI18n(): { lang: Lang; t: Strings } {
+  const lang = resolveLang(getLocales()[0]?.languageCode);
+  return { lang, t: STRINGS[lang] };
+}

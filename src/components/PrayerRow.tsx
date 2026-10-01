@@ -14,9 +14,10 @@ interface Props {
   state: RowState;
   mode: AlertMode;
   onBellPress: () => void;
+  muted?: boolean;
 }
 
-export function PrayerRow({ prayer, state, mode, onBellPress }: Props) {
+export function PrayerRow({ prayer, state, mode, onBellPress, muted }: Props) {
   const { t } = useI18n();
   const meta = PRAYERS[prayer.id];
   const name = t.prayers[prayer.id];
@@ -38,6 +39,7 @@ export function PrayerRow({ prayer, state, mode, onBellPress }: Props) {
         mode={mode}
         accessibilityLabel={t.a11y.bell(name, t.alert[mode])}
         onPress={onBellPress}
+        muted={muted}
       />
     </View>
   );

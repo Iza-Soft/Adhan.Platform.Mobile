@@ -13,6 +13,10 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 
 import { useLocationUpdater } from '@/hooks/useLocationUpdater';
+import { useNotificationScheduler } from '@/hooks/useNotificationScheduler';
+// дефинира фоновата задача при зареждане на кода (виж файла)
+import '@/services/backgroundTask';
+import { configureNotificationHandler } from '@/services/notifications';
 import { useAlertPrefs } from '@/store/alertPrefs';
 import { useSettings } from '@/store/settings';
 import { colors } from '@/theme/colors';
@@ -20,6 +24,8 @@ import { colors } from '@/theme/colors';
 // Splash екранът стои, докато шрифтовете и запазените настройки се заредят –
 // иначе за миг би се показала София по подразбиране вместо твоето място.
 SplashScreen.preventAutoHideAsync();
+// известие, дошло докато приложението е отворено, се показва като обикновено – със звук
+configureNotificationHandler();
 
 function useStoresHydrated(): boolean {
   const [done, setDone] = useState(
@@ -55,6 +61,7 @@ export default function RootLayout() {
 
   const hydrated = useStoresHydrated();
   const ready = (loaded || !!error) && hydrated;
+  useNotificationScheduler(hydrated);
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync();
@@ -78,6 +85,7 @@ export default function RootLayout() {
         {/* изборът на място се отваря отдолу нагоре като модален екран */}
         <Stack.Screen name="place" options={{ presentation: 'modal' }} />
         <Stack.Screen name="about" />
+        <Stack.Screen name="diagnostics" />
       </Stack>
     </>
   );

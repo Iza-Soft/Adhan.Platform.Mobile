@@ -5,6 +5,7 @@ import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, Vi
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GeometricPattern } from '@/components/GeometricPattern';
+import { NotificationsGroup } from '@/components/settings/NotificationsGroup';
 import { PinIcon } from '@/components/icons';
 import {
   Choice,
@@ -96,6 +97,9 @@ export default function SettingsScreen() {
             </Row>
           )}
         </Group>
+
+        {/* ---- Известия ---- */}
+        <NotificationsGroup />
 
         {/* ---- Часове ---- */}
         {isCalc ? (

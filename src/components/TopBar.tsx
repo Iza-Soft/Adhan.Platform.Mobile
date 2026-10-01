@@ -13,7 +13,10 @@ interface Props {
   onCityPress?: () => void;
   /** GPS определя мястото в момента – въртящ се индикатор вместо иконата. */
   locating?: boolean;
-  /** Още няма място от GPS (първо отваряне) – вместо града пише „Определям мястото…“. */
+  /**
+   * Още няма място (първо отваряне, нито от GPS, нито избрано): докато GPS търси –
+   * „Определям мястото…“, а ако не успее – „Избери място“, не „София“.
+   */
   locatingFirstTime?: boolean;
 }
 
@@ -33,7 +36,7 @@ export function TopBar({ city, gregorian, hijri, onCityPress, locating, locating
         ) : (
           <PinIcon color={colors.text} />
         )}
-        <Text style={styles.cityText}>{locating && locatingFirstTime ? t.locating : city}</Text>
+        <Text style={styles.cityText}>{locatingFirstTime ? (locating ? t.locating : t.choosePlace) : city}</Text>
         <ChevronDownIcon color={colors.text} />
       </Pressable>
       <View style={styles.dates}>

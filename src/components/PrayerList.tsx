@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import type { PrayerId, Schedule } from '@/domain/prayers';
+import { useNotificationStatus } from '@/services/notifications';
 import { useAlertPrefs } from '@/store/alertPrefs';
 import { colors } from '@/theme/colors';
 
@@ -13,6 +14,10 @@ interface Props {
 
 export function PrayerList({ schedule, onBellPress }: Props) {
   const modes = useAlertPrefs((s) => s.modes);
+  // без разрешение за известия камбанките са бледи – нищо няма да прозвучи
+  const muted = useNotificationStatus(
+    (s) => s.checked && (s.permission === 'denied' || s.permission === 'undetermined'),
+  );
 
   return (
     <View style={styles.card}>
@@ -23,6 +28,7 @@ export function PrayerList({ schedule, onBellPress }: Props) {
           state={schedule.rowState(p.id)}
           mode={modes[p.id]}
           onBellPress={() => onBellPress(p.id)}
+          muted={muted}
         />
       ))}
     </View>

@@ -17,7 +17,14 @@ interface Props {
   bottom: number;
 }
 
-/** Кратко съобщение над долната навигация: появява се, стои 1.2 s и изчезва. */
+/**
+ * Кратко съобщение над долната навигация. Стои според дължината на текста:
+ * „Иша: езан“ – ~2 сек., дълго обяснение – до 6 сек., за да може да се прочете.
+ */
+export function toastDuration(text: string): number {
+  return Math.min(6000, Math.max(1800, 1200 + text.length * 50));
+}
+
 export function Toast({ message, bottom }: Props) {
   const progress = useSharedValue(0);
 
@@ -27,7 +34,7 @@ export function Toast({ message, bottom }: Props) {
     progress.set(
       withSequence(
         withTiming(1, { duration: 180 }),
-        withDelay(1200, withTiming(0, { duration: 220 })),
+        withDelay(toastDuration(message.text), withTiming(0, { duration: 220 })),
       ),
     );
   }, [message, progress]);
@@ -54,12 +61,13 @@ const styles = StyleSheet.create({
   toast: {
     position: 'absolute',
     alignSelf: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 999,
+    maxWidth: '90%',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 18,
     backgroundColor: 'rgba(8,12,22,0.92)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
   },
-  text: { fontFamily: fonts.semibold, fontSize: 12.5, color: colors.text },
+  text: { fontFamily: fonts.semibold, fontSize: 13, lineHeight: 18, color: colors.text, textAlign: 'center' },
 });

@@ -2,10 +2,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import type { AlertMode } from '@/domain/notifications';
 import { PRAYERS, type PrayerId } from '@/domain/prayers';
 
 /** Трите състояния на камбанката: сиво / бяло / злато. */
-export type AlertMode = 'off' | 'notify' | 'adhan';
+export type { AlertMode };
 
 const DEFAULT_MODES: Record<PrayerId, AlertMode> = {
   fajr: 'adhan',

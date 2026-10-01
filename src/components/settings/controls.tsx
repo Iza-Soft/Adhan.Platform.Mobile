@@ -164,7 +164,7 @@ export function Choice<T extends string>({
           >
             <View style={[styles.radio, on && styles.radioOn]}>{on && <View style={styles.radioDot} />}</View>
             <View style={styles.choiceText}>
-              <Text style={[styles.label, on && styles.labelOn]}>{o.label}</Text>
+              <Text style={[styles.choiceLabel, on && styles.labelOn]}>{o.label}</Text>
               {o.desc ? <Text style={styles.desc}>{o.desc}</Text> : null}
             </View>
           </Pressable>
@@ -246,5 +246,15 @@ const styles = StyleSheet.create({
   },
   radioOn: { borderColor: colors.gold },
   radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.gold },
-  choiceText: { flex: 1 },
+  // Без flex:1 и без допълнителния отстъп на шрифта в Android – иначе текстът стои
+  // по-високо от радио бутона.
+  choiceText: { flex: 1, justifyContent: 'center' },
+  choiceLabel: {
+    fontFamily: fonts.semibold,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.text,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+  },
 });

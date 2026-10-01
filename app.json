@@ -21,7 +21,10 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.ilkoadamov.adhan"
+      "package": "com.ilkoadamov.adhan",
+      "permissions": [
+        "android.permission.SCHEDULE_EXACT_ALARM"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -67,6 +70,18 @@
           "locationAlwaysAndWhenInUsePermission": false,
           "locationAlwaysPermission": false,
           "motionUsagePermission": false
+        }
+      ],
+      "expo-background-task",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#D4A857",
+          "sounds": [
+            "./assets/sounds/ezan_chime.wav",
+            "./assets/sounds/ezan_adhan.wav"
+          ]
         }
       ]
     ],
