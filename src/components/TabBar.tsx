@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@/theme/colors';
-import { fonts } from '@/theme/typography';
+import { FONT_SCALE, fonts } from '@/theme/typography';
 
 import { MonthIcon, QiblaIcon, SettingsIcon, TodayIcon } from './icons';
 
@@ -54,7 +54,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             accessibilityLabel={label}
           >
             <Icon color={color} />
-            <Text style={[styles.label, { color }]}>{label}</Text>
+            <Text maxFontSizeMultiplier={FONT_SCALE.dense} style={[styles.label, { color }]}>{label}</Text>
           </Pressable>
         );
       })}

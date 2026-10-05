@@ -34,7 +34,7 @@ const APP_VERSION = Constants.expoConfig?.version ?? '';
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useTabBarHeight();
-  const { lang, t } = useI18n();
+  const { lang, t, pick } = useI18n();
   const s = useSettings();
   const location = selectLocation(s);
   const status = useLocationStatus((x) => x.status);
@@ -65,13 +65,13 @@ export default function SettingsScreen() {
           <Pressable
             onPress={() => router.push('/place')}
             accessibilityRole="button"
-            accessibilityLabel={`${location.names[lang]}. ${t.settings.change}`}
+            accessibilityLabel={`${pick(location.names)}. ${t.settings.change}`}
             style={({ pressed }) => [styles.placeRow, pressed && styles.pressed]}
           >
             <PinIcon size={18} color={colors.gold} />
             <View style={styles.placeText}>
-              <Text style={styles.placeName}>{location.names[lang]}</Text>
-              {location.detail ? <Text style={styles.placeDetail}>{location.detail[lang]}</Text> : null}
+              <Text style={styles.placeName}>{pick(location.names)}</Text>
+              {location.detail ? <Text style={styles.placeDetail}>{pick(location.detail)}</Text> : null}
               <Text style={styles.badge}>{isCalc ? t.settings.sourceCalc : t.settings.sourceMufti}</Text>
             </View>
             <Text style={styles.link}>{t.settings.change}</Text>
@@ -136,7 +136,7 @@ export default function SettingsScreen() {
                   {
                     value: 'auto',
                     label: t.settings.methodAuto,
-                    desc: t.settings.methodAutoDesc(country ? countryName(country, lang) : '—', t.methods[autoMethod]),
+                    desc: t.settings.methodAutoDesc(country ? countryName(country, lang === 'bg' ? 'bg' : 'en') : '—', t.methods[autoMethod]),
                   },
                   ...CALC_METHODS.map((m) => ({ value: m, label: t.methods[m] })),
                 ]}

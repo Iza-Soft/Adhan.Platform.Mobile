@@ -5,7 +5,7 @@ import { PRAYER_IDS } from '@/domain/prayers';
 import type { MonthDay } from '@/domain/times';
 import { useI18n } from '@/i18n';
 import { colors } from '@/theme/colors';
-import { fonts, tabularNums } from '@/theme/typography';
+import { FONT_SCALE, fonts, tabularNums } from '@/theme/typography';
 
 export const MONTH_ROW_HEIGHT = 42;
 /** Височината на разделителя за нов месец по Хиджра (26 + 2 × 2 отстъп). */
@@ -18,11 +18,11 @@ export function MonthColumns() {
   return (
     <View style={[styles.row, styles.headRow]}>
       <View style={styles.dayCol}>
-        <Text style={[styles.head, styles.headLeft]}>{t.month.dayColumn}</Text>
-        <Text style={styles.headHijri}>{t.month.hijriColumn}</Text>
+        <Text maxFontSizeMultiplier={FONT_SCALE.dense} style={[styles.head, styles.headLeft]}>{t.month.dayColumn}</Text>
+        <Text maxFontSizeMultiplier={FONT_SCALE.dense} style={styles.headHijri}>{t.month.hijriColumn}</Text>
       </View>
       {PRAYER_IDS.map((id) => (
-        <Text key={id} style={[styles.cell, styles.head]} numberOfLines={1} adjustsFontSizeToFit>
+        <Text maxFontSizeMultiplier={FONT_SCALE.dense} key={id} style={[styles.cell, styles.head]} numberOfLines={1} adjustsFontSizeToFit>
           {t.prayers[id]}
         </Text>
       ))}
@@ -35,7 +35,7 @@ export function HijriMonthSeparator({ label }: { label: string }) {
   return (
     <View style={styles.separator} accessibilityRole="header">
       <View style={styles.sepLine} />
-      <Text style={styles.sepText}>{label}</Text>
+      <Text maxFontSizeMultiplier={FONT_SCALE.dense} style={styles.sepText}>{label}</Text>
       <View style={styles.sepLine} />
     </View>
   );
@@ -56,17 +56,21 @@ export function MonthRow({ day, hijriDay, isToday }: RowProps) {
   return (
     <View
       style={[styles.row, styles.dayRow, isToday && styles.today]}
-      accessibilityLabel={isFriday ? `${d.getDate()}, ${t.month.friday}` : undefined}
+      // за TalkBack/VoiceOver – целият ред наведнъж: „Пт 9 окт, петък: Фаджр 05:57, …“
+      accessible
+      accessibilityLabel={`${t.date.weekdaysShort[d.getDay()]} ${d.getDate()} ${t.date.monthsShort[d.getMonth()]}${
+        isFriday ? `, ${t.month.friday}` : ''
+      }${isToday ? `, ${t.month.today}` : ''}: ${day.times.map((p) => `${t.prayers[p.id]} ${formatHM(p.time)}`).join(', ')}`}
     >
       <View style={styles.dayCol}>
         <View style={styles.dateLine}>
-          <Text style={[styles.dateNum, isToday && styles.gold]}>{d.getDate()}</Text>
-          <Text style={[styles.weekday, isFriday && styles.gold]}>{t.date.weekdaysShort[d.getDay()]}</Text>
+          <Text maxFontSizeMultiplier={FONT_SCALE.dense} style={[styles.dateNum, isToday && styles.gold]}>{d.getDate()}</Text>
+          <Text maxFontSizeMultiplier={FONT_SCALE.dense} style={[styles.weekday, isFriday && styles.gold]}>{t.date.weekdaysShort[d.getDay()]}</Text>
         </View>
-        <Text style={styles.hijriDay}>{hijriDay}</Text>
+        <Text maxFontSizeMultiplier={FONT_SCALE.dense} style={styles.hijriDay}>{hijriDay}</Text>
       </View>
       {day.times.map((p) => (
-        <Text key={p.id} style={[styles.cell, styles.time, isToday && styles.timeToday]}>
+        <Text maxFontSizeMultiplier={FONT_SCALE.dense} key={p.id} style={[styles.cell, styles.time, isToday && styles.timeToday]}>
           {formatHM(p.time)}
         </Text>
       ))}

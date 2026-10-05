@@ -21,7 +21,7 @@ import { fonts } from '@/theme/typography';
 /** Избор на населено място в България с търсене (модален екран). */
 export default function PlaceScreen() {
   const insets = useSafeAreaInsets();
-  const { lang, t } = useI18n();
+  const { t, pick } = useI18n();
   const chooseLocation = useSettings((s) => s.chooseLocation);
   const setAutoLocation = useSettings((s) => s.setAutoLocation);
   const [query, setQuery] = useState('');
@@ -52,7 +52,7 @@ export default function PlaceScreen() {
     else router.replace('/');
   };
 
-  const pick = (p: Place) => {
+  const choose = (p: Place) => {
     chooseLocation(placeToLocation(p));
     close();
   };
@@ -113,12 +113,12 @@ export default function PlaceScreen() {
           const loc = placeToLocation(item);
           return (
             <Pressable
-              onPress={() => pick(item)}
+              onPress={() => choose(item)}
               style={({ pressed }) => [styles.item, pressed && styles.pressed]}
               accessibilityRole="button"
             >
-              <Text style={styles.itemName}>{loc.names[lang]}</Text>
-              <Text style={styles.itemDetail}>{loc.detail?.[lang]}</Text>
+              <Text style={styles.itemName}>{pick(loc.names)}</Text>
+              <Text style={styles.itemDetail}>{loc.detail ? pick(loc.detail) : undefined}</Text>
             </Pressable>
           );
         }}

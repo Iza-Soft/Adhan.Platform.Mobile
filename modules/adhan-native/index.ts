@@ -85,7 +85,8 @@ export interface NativeAlarm {
   vibrate: boolean;
   /** Звукът в res/raw без разширение. */
   sound: string;
-  lang: 'bg' | 'en';
+  /** „bg“, „en“ или „tr“ – за датата на екрана „Аларма“. */
+  lang: 'bg' | 'en' | 'tr';
   labels: {
     app: string;
     stop: string;

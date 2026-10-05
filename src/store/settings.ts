@@ -16,6 +16,7 @@ import {
   type MethodChoice,
 } from '@/domain/calc';
 import type { AppLocation } from '@/domain/location';
+import { getPlace, PLACES_COUNT, placeToLocation } from '@/domain/places';
 import { countryOf } from '@/domain/resolve';
 import type { PrayerId } from '@/domain/prayers';
 import type { TimesOptions } from '@/domain/times';
@@ -102,10 +103,15 @@ export const useSettings = create<SettingsState>()(
       name: 'ezan.settings',
       // 2 (етап 5): методът по подразбиране е „Автоматично“ – старият „Диянет“ по подразбиране
       // става „Автоматично“ (за Турция и Европа пак е Диянет)
-      version: 2,
+      // 3 (етап 10): турски език – запазените места в България получават и турското име
+      version: 3,
       migrate: (persisted, version) => {
         const state = persisted as Partial<SettingsState>;
         if (version < 2 && state.method === 'Turkey') state.method = 'auto';
+        if (version < 3) {
+          state.manualLocation = withTurkishName(state.manualLocation);
+          state.gpsLocation = withTurkishName(state.gpsLocation);
+        }
         return state as SettingsState;
       },
       storage: createJSONStorage(() => AsyncStorage),
@@ -173,4 +179,17 @@ export function resolveMethod(method: MethodChoice, location: AppLocation): Calc
 /** Същото, направо от състоянието – без React (ползва се и от известията във фонов режим). */
 export function selectTimesOptions(s: SettingsState): { options: TimesOptions; key: string } {
   return buildTimesOptions({ ...s, location: selectLocation(s) });
+}
+
+/** Място в България, запазено преди етап 10: наново от списъка – с турското име. */
+function withTurkishName<T extends AppLocation | null | undefined>(loc: T): T {
+  if (!loc || !loc.id.startsWith('bg-')) return loc;
+  const index = Number(loc.id.slice(3));
+  if (!Number.isInteger(index) || index < 0 || index >= PLACES_COUNT) return loc;
+  try {
+    const fresh = placeToLocation(getPlace(index));
+    return fresh.names.bg === loc.names.bg ? ({ ...loc, names: fresh.names, detail: fresh.detail } as T) : loc;
+  } catch {
+    return loc;
+  }
 }

@@ -4,6 +4,7 @@ import { fastKm, insideBorder, nearBulgaria } from './geo';
 import type { AppLocation } from './location';
 import { muftiShiftFor } from './mufti';
 import { normalizeForSearch, transliterate } from './translit';
+import { TR_PLACE_NAMES } from './trNames';
 
 /**
  * Всички ~6 700 населени места в България (OpenStreetMap, © OpenStreetMap contributors, ODbL).
@@ -149,20 +150,36 @@ export function isInBulgaria(lat: number, lon: number): boolean {
 /** Името на мястото на двата езика и уточнение (община, област) – за различаване на еднакви имена. */
 export function placeToLocation(place: Place): AppLocation {
   const cityLike = place.kind === 0;
+  // турски: традиционното име на града (Кърджали → Kırcaali), иначе латиницата
+  const trOr = (name: string) => TR_PLACE_NAMES[name] ?? transliterate(name);
+  const trName = cityLike ? TR_PLACE_NAMES[place.name] : undefined;
   return {
     id: `bg-${place.index}`,
-    names: { bg: place.name, en: transliterate(place.name) },
+    names: { bg: place.name, en: transliterate(place.name), ...(trName ? { tr: trName } : {}) },
     detail: {
       bg: cityLike ? `обл. ${place.oblast}` : `общ. ${place.obshtina}, обл. ${place.oblast}`,
       en: cityLike
         ? `${transliterate(place.oblast)} Province`
         : `${transliterate(place.obshtina)}, ${transliterate(place.oblast)} Province`,
+      tr: cityLike ? `${trOr(place.oblast)} ili` : `${trOr(place.obshtina)}, ${trOr(place.oblast)} ili`,
     },
     latitude: place.lat,
     longitude: place.lon,
     source: 'mufti',
     muftiShift: muftiShiftFor(place.lat, place.lon),
   };
+}
+
+/** Турските букви → латински: „Kırcaali“ се намира и като „kircaali“. */
+function foldTurkish(text: string): string {
+  return text
+    .replace(/\u0307/g, '') // „İ“.toLowerCase() → „i̇“
+    .replace(/ı/g, 'i')
+    .replace(/ş/g, 's')
+    .replace(/ç/g, 'c')
+    .replace(/ğ/g, 'g')
+    .replace(/ö/g, 'o')
+    .replace(/ü/g, 'u');
 }
 
 /** София-град от списъка – мястото по подразбиране, докато няма GPS или избор. */
@@ -173,15 +190,18 @@ export function defaultPlace(): Place {
 
 // Индексът за търсене: 6 700 транслитерации – на компютъра ~50 ms, на телефона
 // няколкостотин ms. Строи се на части, за да не блокира екрана (виж warmSearchIndex).
-const searchIndex: { bg: string; lat: string }[] = [];
+const searchIndex: { bg: string; lat: string; tr: string }[] = [];
 const CHUNK = 500;
 
 function buildMore(count: number): void {
   const end = Math.min(ROWS.length, searchIndex.length + count);
   for (let i = searchIndex.length; i < end; i++) {
+    const trName = ROWS[i][5] === 0 ? TR_PLACE_NAMES[ROWS[i][0]] : undefined;
     searchIndex.push({
       bg: normalizeForSearch(ROWS[i][0]),
       lat: normalizeForSearch(transliterate(ROWS[i][0])),
+      // турското име на града – и с, и без турските букви („kırcaali“, „kircaali“)
+      tr: trName ? foldTurkish(normalizeForSearch(trName)) : '',
     });
   }
 }
@@ -241,14 +261,15 @@ export function allCities(): Place[] {
 export function searchPlaces(query: string, limit = 40): Place[] {
   const q = normalizeForSearch(query);
   if (q.length < 2) return [];
+  const qt = foldTurkish(q);
   const idx = index();
   const hits: { i: number; rank: number }[] = [];
   for (let i = 0; i < idx.length; i++) {
-    const { bg, lat } = idx[i];
+    const { bg, lat, tr } = idx[i];
     let rank = -1;
-    if (bg === q || lat === q) rank = 0;
-    else if (bg.startsWith(q) || lat.startsWith(q)) rank = 1;
-    else if (bg.includes(q) || lat.includes(q)) rank = 2;
+    if (bg === q || lat === q || (tr && tr === qt)) rank = 0;
+    else if (bg.startsWith(q) || lat.startsWith(q) || (tr && tr.startsWith(qt))) rank = 1;
+    else if (bg.includes(q) || lat.includes(q) || (tr && tr.includes(qt))) rank = 2;
     if (rank >= 0) hits.push({ i, rank: rank * 10 + ROWS[i][5] });
   }
   hits.sort((a, b) => a.rank - b.rank || a.i - b.i);

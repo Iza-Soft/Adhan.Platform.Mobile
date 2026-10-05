@@ -8,9 +8,9 @@ export type TimeSource = 'mufti' | 'calc';
 export interface AppLocation {
   id: string;
   /** Името на мястото на двата езика (градовете са данни, а не текстове на интерфейса). */
-  names: { bg: string; en: string };
+  names: { bg: string; en: string; tr?: string };
   /** Уточнение под името: „общ. Рудозем, обл. Смолян“ или държавата извън България. */
-  detail?: { bg: string; en: string };
+  detail?: { bg: string; en: string; tr?: string };
   latitude: number;
   longitude: number;
   source: TimeSource;

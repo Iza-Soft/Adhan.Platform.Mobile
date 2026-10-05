@@ -5,7 +5,7 @@ import { PRAYERS, type PrayerTime, type RowState } from '@/domain/prayers';
 import { useI18n } from '@/i18n';
 import type { AlertMode } from '@/store/alertPrefs';
 import { colors } from '@/theme/colors';
-import { fonts, tabularNums } from '@/theme/typography';
+import { FONT_SCALE, fonts, tabularNums } from '@/theme/typography';
 
 import { BellButton } from './BellButton';
 
@@ -26,15 +26,23 @@ export function PrayerRow({ prayer, state, mode, onBellPress, muted }: Props) {
   return (
     <View style={[styles.row, isNow && styles.now, state === 'past' && styles.past]}>
       <View style={styles.names}>
-        <Text style={[styles.name, isNow && styles.nameNow]}>{name}</Text>
-        <Text style={styles.arabic}>{meta.arabic}</Text>
+        <Text maxFontSizeMultiplier={FONT_SCALE.row} style={[styles.name, isNow && styles.nameNow]}>{name}</Text>
+        <Text
+          maxFontSizeMultiplier={FONT_SCALE.row}
+          style={styles.arabic}
+          // арабското име – само за окото; TalkBack/VoiceOver го пропускат
+          importantForAccessibility="no"
+          accessibilityElementsHidden
+        >
+          {meta.arabic}
+        </Text>
         {isNow && (
           <View style={styles.pill}>
-            <Text style={styles.pillText}>{t.nowPill}</Text>
+            <Text maxFontSizeMultiplier={FONT_SCALE.row} style={styles.pillText}>{t.nowPill}</Text>
           </View>
         )}
       </View>
-      <Text style={[styles.time, isNow && styles.timeNow]}>{formatHM(prayer.time)}</Text>
+      <Text maxFontSizeMultiplier={FONT_SCALE.row} style={[styles.time, isNow && styles.timeNow]}>{formatHM(prayer.time)}</Text>
       <BellButton
         mode={mode}
         accessibilityLabel={t.a11y.bell(name, t.alert[mode])}

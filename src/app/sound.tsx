@@ -35,7 +35,7 @@ import { fonts, tabularNums } from '@/theme/typography';
  */
 export default function SoundScreen() {
   const insets = useSafeAreaInsets();
-  const { lang, t } = useI18n();
+  const { t, pick } = useI18n();
   const s = t.sounds;
   const { p } = useLocalSearchParams<{ p?: string }>();
   const prayer = PRAYER_IDS.includes(p as PrayerId) ? (p as PrayerId) : null;
@@ -131,7 +131,7 @@ export default function SoundScreen() {
               <View style={[styles.radio, on && styles.radioOn]}>{on && <View style={styles.dot} />}</View>
               <View style={styles.text}>
                 <Text style={[styles.name, on && styles.nameOn]} numberOfLines={2}>
-                  {x.names[lang]}
+                  {pick(x.names)}
                   {x.custom ? <Text style={styles.mine}>{`  ${s.mine}`}</Text> : null}
                 </Text>
                 {x.id === defaultId && <Text style={styles.byDefault}>{s.byDefault}</Text>}

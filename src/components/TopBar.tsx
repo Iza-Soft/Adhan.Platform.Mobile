@@ -2,7 +2,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 
 import { useI18n } from '@/i18n';
 import { colors } from '@/theme/colors';
-import { fonts } from '@/theme/typography';
+import { FONT_SCALE, fonts } from '@/theme/typography';
 
 import { ChevronDownIcon, PinIcon } from './icons';
 
@@ -36,12 +36,12 @@ export function TopBar({ city, gregorian, hijri, onCityPress, locating, locating
         ) : (
           <PinIcon color={colors.text} />
         )}
-        <Text style={styles.cityText}>{locatingFirstTime ? (locating ? t.locating : t.choosePlace) : city}</Text>
+        <Text maxFontSizeMultiplier={FONT_SCALE.row} style={styles.cityText}>{locatingFirstTime ? (locating ? t.locating : t.choosePlace) : city}</Text>
         <ChevronDownIcon color={colors.text} />
       </Pressable>
       <View style={styles.dates}>
-        <Text style={styles.gregorian}>{gregorian}</Text>
-        <Text style={styles.hijri}>{hijri}</Text>
+        <Text maxFontSizeMultiplier={FONT_SCALE.row} style={styles.gregorian}>{gregorian}</Text>
+        <Text maxFontSizeMultiplier={FONT_SCALE.row} style={styles.hijri}>{hijri}</Text>
       </View>
     </View>
   );

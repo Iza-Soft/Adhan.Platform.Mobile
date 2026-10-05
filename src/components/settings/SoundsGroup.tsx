@@ -6,7 +6,7 @@ import { hasNativeAlarms } from '../../../modules/adhan-native';
 import { ChevronIcon } from '@/components/icons';
 import { PlayButton } from '@/components/sounds/PlayButton';
 import { ALARM_PRAYERS, findSound, type SoundDef } from '@/domain/sounds';
-import { useI18n } from '@/i18n';
+import { pickName, useI18n, type Lang } from '@/i18n';
 import { openExactAlarmSettings, useNotificationStatus } from '@/services/notifications';
 import { useSounds } from '@/store/sounds';
 import { colors } from '@/theme/colors';
@@ -79,7 +79,7 @@ function SoundRow({
 }: {
   label: string;
   sound: SoundDef;
-  lang: 'bg' | 'en';
+  lang: Lang;
   onPress: () => void;
   first?: boolean;
 }) {
@@ -92,7 +92,7 @@ function SoundRow({
       <View style={styles.text}>
         <Text style={styles.label}>{label}</Text>
         <Text style={styles.sub} numberOfLines={1}>
-          {sound.names[lang]}
+          {pickName(sound.names, lang)}
         </Text>
       </View>
       <PlayButton sound={sound} />

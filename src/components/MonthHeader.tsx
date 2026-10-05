@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useI18n } from '@/i18n';
 import { colors } from '@/theme/colors';
-import { fonts } from '@/theme/typography';
+import { FONT_SCALE, fonts } from '@/theme/typography';
 
 import { ChevronIcon } from './icons';
 
@@ -33,8 +33,8 @@ export function MonthHeader({ title, hijriRange, city, showToday, onPrev, onNext
           <ChevronIcon direction="left" color={colors.text} />
         </Pressable>
         <View style={styles.titles}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.hijri}>{hijriRange}</Text>
+          <Text maxFontSizeMultiplier={FONT_SCALE.row} style={styles.title}>{title}</Text>
+          <Text maxFontSizeMultiplier={FONT_SCALE.row} style={styles.hijri}>{hijriRange}</Text>
         </View>
         <Pressable
           onPress={onNext}
@@ -47,14 +47,14 @@ export function MonthHeader({ title, hijriRange, city, showToday, onPrev, onNext
         </Pressable>
       </View>
       <View style={styles.meta}>
-        <Text style={styles.city}>{city}</Text>
+        <Text maxFontSizeMultiplier={FONT_SCALE.row} style={styles.city}>{city}</Text>
         {showToday && (
           <Pressable
             onPress={onToday}
             style={({ pressed }) => [styles.todayBtn, pressed && styles.pressed]}
             accessibilityRole="button"
           >
-            <Text style={styles.todayText}>{t.month.today}</Text>
+            <Text maxFontSizeMultiplier={FONT_SCALE.row} style={styles.todayText}>{t.month.today}</Text>
           </Pressable>
         )}
       </View>

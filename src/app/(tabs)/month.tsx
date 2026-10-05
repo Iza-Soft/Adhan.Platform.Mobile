@@ -24,7 +24,7 @@ import { fonts } from '@/theme/typography';
 export default function MonthScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useTabBarHeight();
-  const { lang, t } = useI18n();
+  const { t, pick } = useI18n();
   const now = useNow(60_000); // тук е достатъчно веднъж в минута
 
   const [ym, setYm] = useState(() => ({ y: now.getFullYear(), m: now.getMonth() }));
@@ -87,7 +87,7 @@ export default function MonthScreen() {
       <MonthHeader
         title={`${t.date.monthsFull[ym.m]} ${ym.y}`}
         hijriRange={hijriRange}
-        city={location.names[lang]}
+        city={pick(location.names)}
         showToday={!isCurrentMonth}
         onPrev={() => shiftMonth(-1)}
         onNext={() => shiftMonth(1)}

@@ -59,11 +59,13 @@
           "supportedLocales": {
             "ios": [
               "en",
-              "bg"
+              "bg",
+              "tr"
             ],
             "android": [
               "en",
-              "bg"
+              "bg",
+              "tr"
             ]
           }
         }
@@ -164,7 +166,8 @@
     },
     "locales": {
       "bg": "./locales/bg.json",
-      "en": "./locales/en.json"
+      "en": "./locales/en.json",
+      "tr": "./locales/tr.json"
     }
   }
 }

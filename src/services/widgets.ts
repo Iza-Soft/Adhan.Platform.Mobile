@@ -19,11 +19,11 @@ export function updateWidgets(now: Date = new Date()): void {
   if (Platform.OS !== 'android' && Platform.OS !== 'ios') return;
   try {
     const s = useSettings.getState();
-    const { lang, t } = getI18n();
+    const { t, pick } = getI18n();
     const entries = planWidget({
       now,
       options: selectTimesOptions(s).options,
-      placeName: selectLocation(s).names[lang],
+      placeName: pick(selectLocation(s).names),
       texts: { prayers: t.prayers, ...t.hero, ...t.widget },
       gradients: PHASE_GRADIENTS,
     });

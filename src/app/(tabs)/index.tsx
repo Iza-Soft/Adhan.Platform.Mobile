@@ -23,7 +23,7 @@ import { selectLocation, useSettings } from '@/store/settings';
 
 export default function TodayScreen() {
   const insets = useSafeAreaInsets();
-  const { lang, t } = useI18n();
+  const { t, pick } = useI18n();
   const tabBarHeight = useTabBarHeight();
 
   const now = useNow();
@@ -71,7 +71,7 @@ export default function TodayScreen() {
         showsVerticalScrollIndicator={false}
       >
         <TopBar
-          city={location.names[lang]}
+          city={pick(location.names)}
           gregorian={formatGregorianShort(now, t.date)}
           hijri={formatHijri(now, t.hijriMonths, hijriAdjust)}
           onCityPress={() => router.push('/place')}

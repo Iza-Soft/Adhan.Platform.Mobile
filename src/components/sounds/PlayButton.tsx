@@ -8,9 +8,9 @@ import { colors } from '@/theme/colors';
 
 /** Кръглият бутон ▶ / ❚❚ – преслушване на звука. */
 export function PlayButton({ sound }: { sound: SoundDef }) {
-  const { lang, t } = useI18n();
+  const { t, pick } = useI18n();
   const playing = usePreview((s) => s.playing === sound.id);
-  const name = sound.names[lang];
+  const name = pick(sound.names);
   return (
     <Pressable
       onPress={() => togglePreview(sound)}

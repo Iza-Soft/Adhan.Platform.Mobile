@@ -91,8 +91,8 @@ const created = new Set<string>();
 async function ensureChannel(use: ChannelUse, sound: SoundDef, vibrate: boolean): Promise<string> {
   const id = channelId(use, sound, vibrate);
   if (Platform.OS !== 'android' || created.has(id)) return id;
-  const { lang, t } = getI18n();
-  const name = `${use === 'alarm' ? t.notifications.channelAdhan : t.notifications.channelPrayer} · ${sound.names[lang]}`;
+  const { t, pick } = getI18n();
+  const name = `${use === 'alarm' ? t.notifications.channelAdhan : t.notifications.channelPrayer} · ${pick(sound.names)}`;
   // свой кратък звук (откъсът в Notifications/Ezan) и звукът на телефона – каналът се създава
   // в native частта, защото expo-notifications приема само звуци от res/raw
   if (sound.custom || sound.id === 'system') {
@@ -231,7 +231,7 @@ async function doReschedule(): Promise<void> {
   const exact = useNotificationStatus.getState().exact;
 
   const s = useSettings.getState();
-  const { lang, t } = getI18n();
+  const { t, pick } = getI18n();
   const plan =
     permission === 'granted'
       ? planNotifications({
@@ -239,7 +239,7 @@ async function doReschedule(): Promise<void> {
           options: selectTimesOptions(s).options,
           modes: useAlertPrefs.getState().modes,
           reminderMinutes: s.reminderMinutes,
-          placeName: selectLocation(s).names[lang],
+          placeName: pick(selectLocation(s).names),
           texts: { prayers: t.prayers, ...t.notifications },
         })
       : [];
@@ -255,7 +255,7 @@ async function doReschedule(): Promise<void> {
     notifications = plan.filter((n) => !isAlarm(n));
     alarmCount = Math.max(
       0,
-      setAlarms(alarms.map((n) => toNativeAlarm(n, s.vibrate, selectLocation(s).names[lang], sounds.full(n.prayer!)))),
+      setAlarms(alarms.map((n) => toNativeAlarm(n, s.vibrate, pick(selectLocation(s).names), sounds.full(n.prayer!)))),
     );
   } else if (hasNativeAlarms()) {
     setAlarms([]);
@@ -330,7 +330,7 @@ function nativeAlarmsEnabled(exact: boolean | null): boolean {
 
 /** Едно известие от плана → аларма за native частта, с всички текстове на езика на телефона. */
 function toNativeAlarm(n: PlannedNotification, vibrate: boolean, place: string, sound: SoundDef): NativeAlarm {
-  const { lang, t } = getI18n();
+  const { lang, t, pick } = getI18n();
   const prayer = (n.prayer ?? 'dhuhr') as PrayerId;
   const name = t.prayers[prayer];
   return {
@@ -354,7 +354,7 @@ function toNativeAlarm(n: PlannedNotification, vibrate: boolean, place: string, 
       mute: t.alarm.mute,
       muteShort: t.alarm.muteShort,
       close: t.alarm.close,
-      soundName: sound.names[lang],
+      soundName: pick(sound.names),
       channel: t.alarm.channel,
     },
   };

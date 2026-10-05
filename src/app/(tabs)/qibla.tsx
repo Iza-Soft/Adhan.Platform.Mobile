@@ -26,7 +26,7 @@ const QUALITY_COLOR = { high: '#5FBF8F', medium: colors.gold, low: colors.warn }
 export default function QiblaScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useTabBarHeight();
-  const { lang, t } = useI18n();
+  const { t, pick } = useI18n();
   const q = t.qibla;
   const location = useSettings(selectLocation);
   const hasPlace = useSettings((s) => s.gpsLocation !== null || s.manualLocation !== null);
@@ -82,11 +82,11 @@ export default function QiblaScreen() {
           <Pressable
             onPress={() => router.push('/place')}
             accessibilityRole="button"
-            accessibilityLabel={t.a11y.city(location.names[lang])}
+            accessibilityLabel={t.a11y.city(pick(location.names))}
             style={({ pressed }) => [styles.city, pressed && styles.pressed]}
           >
             <PinIcon color={colors.text} />
-            <Text style={styles.cityText}>{hasPlace ? location.names[lang] : t.choosePlace}</Text>
+            <Text style={styles.cityText}>{hasPlace ? pick(location.names) : t.choosePlace}</Text>
             <ChevronDownIcon color={colors.text} />
           </Pressable>
           {live && (

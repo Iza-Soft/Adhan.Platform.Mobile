@@ -320,7 +320,11 @@ class AlarmActivity : Activity() {
 
   /** „Четвъртък, 1 октомври“ / „Thursday, 1 October“ */
   private fun dateLine(a: AlarmData): String {
-    val locale = if (a.lang == "bg") Locale("bg") else Locale.UK
+    val locale = when (a.lang) {
+      "bg" -> Locale("bg")
+      "tr" -> Locale("tr")
+      else -> Locale.UK
+    }
     val s = SimpleDateFormat("EEEE, d MMMM", locale).format(Date(a.at))
     return s.replaceFirstChar { it.titlecase(locale) }
   }
