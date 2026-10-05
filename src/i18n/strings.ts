@@ -113,6 +113,14 @@ export const bg = {
     increase: (label: string) => `Увеличи: ${label}`,
   },
 
+  widget: {
+    next: 'Следваща',
+    tomorrowShort: (time: string) => `утре ${time}`,
+    until: (name: string) => `остават до ${name}`,
+    left: 'остават',
+    empty: 'Отвори Езан, за да се покажат часовете.',
+  },
+
   notifications: {
     prayerTitle: (prayer: string, time: string) => `${prayer} – ${time}`,
     prayerBody: (prayer: string, arabic: string, place: string) => `Време е за намаза ${prayer} (${arabic}) · ${place}`,
@@ -534,6 +542,14 @@ export const en: Strings = {
     reset: 'Reset adjustments',
     decrease: (label) => `Decrease: ${label}`,
     increase: (label) => `Increase: ${label}`,
+  },
+
+  widget: {
+    next: 'Next',
+    tomorrowShort: (time) => `tomorrow ${time}`,
+    until: (name) => `until ${name}`,
+    left: 'left',
+    empty: 'Open Adhan to see the prayer times.',
   },
 
   notifications: {

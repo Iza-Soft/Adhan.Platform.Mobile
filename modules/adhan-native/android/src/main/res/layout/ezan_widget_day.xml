@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Шрифтовете са системните: widget-ите не могат да зареждат свои шрифтове (RemoteViews). -->
+<!-- Widget „Денят“ 4×2 (етап 8) – по mockup-а. Текстовете ги задава PrayerWidgets.kt. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/ezan_widget_root"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:background="@drawable/ezan_widget_bg_dhuhr"
+  android:clipToOutline="true">
+
+  <ImageView
+    android:layout_width="150dp"
+    android:layout_height="75dp"
+    android:layout_gravity="bottom|start"
+    android:layout_marginStart="6dp"
+    android:layout_marginBottom="-2dp"
+    android:alpha="0.22"
+    android:importantForAccessibility="no"
+    android:src="@drawable/ezan_widget_dome" />
+
+  <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:paddingStart="16dp"
+    android:paddingEnd="14dp"
+    android:paddingTop="14dp"
+    android:paddingBottom="12dp">
+
+    <LinearLayout
+      android:layout_width="0dp"
+      android:layout_height="match_parent"
+      android:layout_weight="46"
+      android:orientation="vertical">
+      <TextView
+          android:id="@+id/ezan_place"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:fontFamily="sans-serif"
+          android:textStyle="bold"
+          android:textSize="10.5sp"
+          android:textColor="#B8F2EFE8"
+          android:maxLines="1"
+          android:ellipsize="end"
+          android:text="@string/ezan_widget_sample_place"
+          android:letterSpacing="0.1" />
+      <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+      <TextView
+          android:id="@+id/ezan_arabic"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textStyle="bold"
+          android:textSize="26sp"
+          android:textColor="#D4A857"
+          android:maxLines="1"
+          android:ellipsize="end"
+          android:text="العصر" />
+      <LinearLayout
+        android:id="@+id/ezan_label_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/ezan_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:textSize="13sp"
+            android:textColor="#C7F2EFE8"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="@string/ezan_widget_sample_label" />
+        <TextView
+            android:id="@+id/ezan_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif"
+          android:textStyle="bold"
+            android:textSize="13sp"
+            android:textColor="#F2EFE8"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="@string/ezan_widget_sample_name" />
+      </LinearLayout>
+      <Chronometer
+          android:id="@+id/ezan_count"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:fontFamily="sans-serif"
+          android:textStyle="bold"
+          android:fontFeatureSettings="tnum"
+          android:letterSpacing="-0.02"
+          android:includeFontPadding="false"
+          android:textSize="30sp"
+          android:textColor="#F2EFE8"
+          android:singleLine="true" />
+      <TextView
+          android:id="@+id/ezan_at"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:fontFamily="sans-serif-medium"
+          android:textSize="12sp"
+          android:textColor="#B8F2EFE8"
+          android:maxLines="1"
+          android:ellipsize="end"
+          android:text="@string/ezan_widget_sample_at_long"
+          android:fontFeatureSettings="tnum" />
+    </LinearLayout>
+
+    <FrameLayout
+      android:layout_width="0dp"
+      android:layout_height="match_parent"
+      android:layout_weight="54"
+      android:layout_marginStart="14dp">
+
+      <LinearLayout
+        android:id="@+id/ezan_rows"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@drawable/ezan_widget_panel"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp">
+      <LinearLayout
+        android:id="@+id/ezan_row0"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+        <TextView
+          android:id="@+id/ezan_row0_name"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:fontFamily="sans-serif"
+          android:textSize="12.5sp"
+          android:textColor="#D9F2EFE8"
+          android:maxLines="1"
+          android:ellipsize="end" />
+        <TextView
+          android:id="@+id/ezan_row0_time"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:fontFamily="sans-serif"
+          android:fontFeatureSettings="tnum"
+          android:textSize="12.5sp"
+          android:textColor="#D9F2EFE8"
+          android:maxLines="1" />
+      </LinearLayout>
+      <LinearLayout
+        android:id="@+id/ezan_row1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+        <TextView
+          android:id="@+id/ezan_row1_name"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:fontFamily="sans-serif"
+          android:textSize="12.5sp"
+          android:textColor="#D9F2EFE8"
+          android:maxLines="1"
+          android:ellipsize="end" />
+        <TextView
+          android:id="@+id/ezan_row1_time"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:fontFamily="sans-serif"
+          android:fontFeatureSettings="tnum"
+          android:textSize="12.5sp"
+          android:textColor="#D9F2EFE8"
+          android:maxLines="1" />
+      </LinearLayout>
+      <LinearLayout
+        android:id="@+id/ezan_row2"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+        <TextView
+          android:id="@+id/ezan_row2_name"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:fontFamily="sans-serif"
+          android:textSize="12.5sp"
+          android:textColor="#D9F2EFE8"
+          android:maxLines="1"
+          android:ellipsize="end" />
+        <TextView
+          android:id="@+id/ezan_row2_time"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:fontFamily="sans-serif"
+          android:fontFeatureSettings="tnum"
+          android:textSize="12.5sp"
+          android:textColor="#D9F2EFE8"
+          android:maxLines="1" />
+      </LinearLayout>
+      <LinearLayout
+        android:id="@+id/ezan_row3"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+        <TextView
+          android:id="@+id/ezan_row3_name"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:fontFamily="sans-serif"
+          android:textSize="12.5sp"
+          android:textColor="#D9F2EFE8"
+          android:maxLines="1"
+          android:ellipsize="end" />
+        <TextView
+          android:id="@+id/ezan_row3_time"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:fontFamily="sans-serif"
+          android:fontFeatureSettings="tnum"
+          android:textSize="12.5sp"
+          android:textColor="#D9F2EFE8"
+          android:maxLines="1" />
+      </LinearLayout>
+      <LinearLayout
+        android:id="@+id/ezan_row4"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+        <TextView
+          android:id="@+id/ezan_row4_name"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:fontFamily="sans-serif"
+          android:textSize="12.5sp"
+          android:textColor="#D9F2EFE8"
+          android:maxLines="1"
+          android:ellipsize="end" />
+        <TextView
+          android:id="@+id/ezan_row4_time"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:fontFamily="sans-serif"
+          android:fontFeatureSettings="tnum"
+          android:textSize="12.5sp"
+          android:textColor="#D9F2EFE8"
+          android:maxLines="1" />
+      </LinearLayout>
+      <LinearLayout
+        android:id="@+id/ezan_row5"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+        <TextView
+          android:id="@+id/ezan_row5_name"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:fontFamily="sans-serif"
+          android:textSize="12.5sp"
+          android:textColor="#D9F2EFE8"
+          android:maxLines="1"
+          android:ellipsize="end" />
+        <TextView
+          android:id="@+id/ezan_row5_time"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:fontFamily="sans-serif"
+          android:fontFeatureSettings="tnum"
+          android:textSize="12.5sp"
+          android:textColor="#D9F2EFE8"
+          android:maxLines="1" />
+      </LinearLayout>
+      </LinearLayout>
+
+      <TextView
+        android:id="@+id/ezan_empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:fontFamily="sans-serif"
+          android:textStyle="bold"
+        android:textSize="13sp"
+        android:textColor="#C7F2EFE8"
+        android:visibility="gone" />
+    </FrameLayout>
+  </LinearLayout>
+</FrameLayout>

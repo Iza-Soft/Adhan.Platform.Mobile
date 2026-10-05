@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="ezan_widget_next_name">Следваща молитва</string>
+  <string name="ezan_widget_next_desc">Следващата молитва и колко остава</string>
+  <string name="ezan_widget_day_name">Часовете за деня</string>
+  <string name="ezan_widget_day_desc">Следващата молитва, колко остава и всички часове за деня</string>
+  <string name="ezan_widget_bar_name">Лента</string>
+  <string name="ezan_widget_bar_desc">Следващата молитва и колко остава на един ред</string>
+  <string name="ezan_widget_empty">Отвори Езан, за да се покажат часовете.</string>
+  <string name="ezan_widget_sample_place">СОФИЯ</string>
+  <string name="ezan_widget_sample_name">Аср</string>
+  <string name="ezan_widget_sample_at">16:33</string>
+  <string name="ezan_widget_sample_at_long">в 16:33</string>
+  <string name="ezan_widget_sample_until">остават до Аср</string>
+  <string name="ezan_widget_sample_label">Следваща · </string>
+</resources>

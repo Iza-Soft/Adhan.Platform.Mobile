@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Фонът на widget-а: градиентът на молитвата (src/theme/gradients.ts) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+  <gradient
+    android:type="linear"
+    android:angle="0"
+    android:startColor="#1B1023"
+    android:centerColor="#672838"
+    android:centerX="0.55"
+    android:endColor="#CC6139" />
+  <corners android:radius="@dimen/ezan_widget_radius" />
+</shape>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Силуетът на купол и две минарета (както зад таймера в „Днес“) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="120dp"
+  android:height="60dp"
+  android:viewportWidth="120"
+  android:viewportHeight="60">
+  <path
+    android:fillColor="#000000"
+    android:pathData="M8,60V22h3v-6l1.5,-4 1.5,4v6h3v38zM104,60V22h3v-6l1.5,-4 1.5,4v6h3v38zM30,60V42c0,-14 13,-24 30,-28 17,4 30,14 30,28v18z" />
+</vector>

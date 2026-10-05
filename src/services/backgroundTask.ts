@@ -7,9 +7,11 @@ import { useSettings } from '@/store/settings';
 import { useSounds } from '@/store/sounds';
 
 import { rescheduleNotifications } from './notifications';
+import { updateWidgets } from './widgets';
 
 /**
- * Фонова задача: веднъж на няколко часа допланира известията за следващите дни,
+ * Фонова задача: веднъж на няколко часа допланира известията (и кадрите на widget-ите)
+ * за следващите дни,
  * дори ако приложението не се отваря. Android – WorkManager (работи и без Google услуги),
  * iPhone – BGTaskScheduler (системата решава кога; обикновено нощем, на зарядно).
  */
@@ -26,6 +28,8 @@ if (Platform.OS !== 'web') {
         useAlertPrefs.persist.rehydrate(),
         useSounds.persist.rehydrate(),
       ]);
+      // widget-ите – кадрите се изместват напред (винаги 7 дни)
+      updateWidgets();
       await rescheduleNotifications();
       return BackgroundTask.BackgroundTaskResult.Success;
     } catch {

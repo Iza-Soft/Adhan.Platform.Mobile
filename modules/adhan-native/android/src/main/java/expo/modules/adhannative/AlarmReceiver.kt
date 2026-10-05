@@ -69,5 +69,11 @@ class BootReceiver : BroadcastReceiver() {
     } catch (e: Exception) {
       Log.w("AdhanAlarm", "reschedule: ${e.message}")
     }
+    // widget-ите (етап 8): след рестарт/смяна на часа Chronometer-ът трябва нова основа
+    try {
+      PrayerWidgets.updateAll(context)
+    } catch (e: Exception) {
+      Log.w("AdhanWidget", "boot: ${e.message}")
+    }
   }
 }

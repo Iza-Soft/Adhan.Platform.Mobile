@@ -28,6 +28,9 @@ interface AdhanNativeModule {
   prepareShortSound?(uri: string, title: string, maxSec: number): Promise<PreparedShortSound>;
   deleteShortSound?(uri: string): void;
   createSoundChannel?(id: string, name: string, uri: string, alarm: boolean, vibrate: boolean, pattern: number[]): void;
+  // етап 8 – widget-и
+  setWidgetData?(json: string): void;
+  getWidgetCount?(): number;
 }
 
 /** Android: свой кратък звук – откъсът в Notifications/Ezan. */
@@ -270,4 +273,17 @@ export function createSoundChannel(
     native.createSoundChannel!(id, name, uri, alarm, vibrate, pattern);
     return true;
   }, false);
+}
+
+/* ------------------------------------------------------------------ widget-и (етап 8) */
+
+/** Android: кадрите на widget-ите (виж src/domain/widget.ts). Без widget-и в build-а – нищо. */
+export function setWidgetData(json: string): void {
+  safe(() => native?.setWidgetData?.(json), undefined);
+}
+
+/** Android: колко widget-а на Езан има на началния екран (−1 – неизвестно). */
+export function getWidgetCount(): number {
+  if (!native?.getWidgetCount) return -1;
+  return safe(() => native.getWidgetCount!(), -1);
 }

@@ -19,7 +19,8 @@ import expo.modules.kotlin.modules.ModuleDefinition
  * - етап 4: точни известия (Android 12+);
  * - етап 5: алармата с пълния езан (AlarmManager.setAlarmClock + foreground service +
  *   екран „Аларма“), аларма на цял екран (Android 14+), работа на заден план
- *   (оптимизация на батерията) и местоположение без Google услуги (Huawei).
+ *   (оптимизация на батерията) и местоположение без Google услуги (Huawei);
+ * - етап 6: звуците; етап 8: widget-ите (PrayerWidgets.kt).
  */
 class AdhanNativeModule : Module() {
   private val context: Context
@@ -163,6 +164,18 @@ class AdhanNativeModule : Module() {
     // Списъкът „Оптимизация на батерията“ на Android.
     Function("openBatteryOptimizationSettings") {
       open(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+    }
+
+    /* -------------------------------------------------- widget-и (етап 8) */
+
+    // Кадрите на widget-ите (JSON от src/domain/widget.ts): записва ги и прерисува widget-ите.
+    Function("setWidgetData") { json: String ->
+      PrayerWidgets.setData(context, json)
+    }
+
+    // Колко widget-а на Езан има на началния екран.
+    Function("getWidgetCount") {
+      PrayerWidgets.count(context)
     }
 
     /* -------------------------------------------------- местоположение без Google (Huawei) */

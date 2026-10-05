@@ -122,7 +122,40 @@
           "enableBackgroundRecording": false
         }
       ],
-      "./plugins/withFullSounds"
+      "./plugins/withFullSounds",
+      [
+        "expo-widgets",
+        {
+          "widgets": [
+            {
+              "name": "PrayerWidget",
+              "displayName": "Adhan",
+              "description": "The next prayer and the time left",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium",
+                  "accessoryCircular",
+                  "accessoryRectangular",
+                  "accessoryInline"
+                ]
+              },
+              "android": null
+            },
+            {
+              "name": "PrayerArabicWidget",
+              "displayName": "Adhan · Arabic",
+              "description": "The next prayer in Arabic and the time left",
+              "ios": {
+                "supportedFamilies": [
+                  "accessoryCircular"
+                ]
+              },
+              "android": null
+            }
+          ]
+        }
+      ]
     ],
     "scheme": "adhan",
     "backgroundColor": "#0F1B2D",

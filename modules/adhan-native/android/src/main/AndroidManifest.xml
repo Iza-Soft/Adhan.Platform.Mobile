@@ -47,5 +47,44 @@
         <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
       </intent-filter>
     </receiver>
+    <!-- Widget-ите (етап 8): „Следваща“ 2×2, „Денят“ 4×2, „Лента“ 4×1 -->
+    <receiver
+      android:name="expo.modules.adhannative.NextPrayerWidget"
+      android:label="@string/ezan_widget_next_name"
+      android:exported="false">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+      </intent-filter>
+      <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/ezan_widget_next_info" />
+    </receiver>
+    <receiver
+      android:name="expo.modules.adhannative.DayWidget"
+      android:label="@string/ezan_widget_day_name"
+      android:exported="false">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+      </intent-filter>
+      <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/ezan_widget_day_info" />
+    </receiver>
+    <receiver
+      android:name="expo.modules.adhannative.BarWidget"
+      android:label="@string/ezan_widget_bar_name"
+      android:exported="false">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+      </intent-filter>
+      <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/ezan_widget_bar_info" />
+    </receiver>
+
+    <!-- Новият кадър на widget-ите в часа на всяка молитва и в полунощ -->
+    <receiver
+      android:name="expo.modules.adhannative.WidgetRefreshReceiver"
+      android:exported="false" />
   </application>
 </manifest>
