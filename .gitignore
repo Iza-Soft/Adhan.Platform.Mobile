@@ -44,3 +44,9 @@ yarn-error.*
 /CLAUDE.md
 /docs/GUIDE.md
 /docs/PLAN.md
+
+# build output of the local native module (Gradle / Xcode) – generated on every build
+modules/*/android/build/
+modules/*/android/.gradle/
+modules/*/android/.cxx/
+modules/*/ios/build/
