@@ -10,7 +10,8 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.ilkoadamov.adhan",
       "infoPlist": {
-        "CFBundleAllowMixedLocalizations": true
+        "CFBundleAllowMixedLocalizations": true,
+        "LSApplicationQueriesSchemes": ["comgooglemaps", "waze", "om"]
       }
     },
     "android": {
@@ -73,7 +74,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Adhan uses your location to show the prayer times for the place where you are.",
+          "locationWhenInUsePermission": "Adhan uses your location to show the prayer times for the place where you are and the mosques nearby.",
           "locationAlwaysAndWhenInUsePermission": false,
           "locationAlwaysPermission": false,
           "motionUsagePermission": false
@@ -157,7 +158,8 @@
             }
           ]
         }
-      ]
+      ],
+      "@maplibre/maplibre-react-native"
     ],
     "scheme": "adhan",
     "backgroundColor": "#0F1B2D",

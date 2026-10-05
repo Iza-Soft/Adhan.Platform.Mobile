@@ -9,6 +9,7 @@ import { BatteryWarning } from '@/components/settings/BatteryWarning';
 import { NotificationsGroup } from '@/components/settings/NotificationsGroup';
 import { SoundsGroup } from '@/components/settings/SoundsGroup';
 import { PinIcon } from '@/components/icons';
+import { navAppName } from '@/components/mosques/navLabel';
 import {
   Choice,
   Group,
@@ -229,6 +230,16 @@ export default function SettingsScreen() {
             onPlus={() => s.changeHijriAdjust(1)}
             minusLabel={t.settings.decrease(t.settings.hijri)}
             plusLabel={t.settings.increase(t.settings.hijri)}
+          />
+        </Group>
+
+        {/* ---- Джамии наблизо (етап 12): с кое приложение се отваря „Упътване“ ---- */}
+        <Group label={t.nav.group} note={t.nav.rowNote}>
+          <NavRow
+            first
+            label={t.nav.row}
+            value={s.navRemembered ? navAppName(s.navApp, t) : t.nav.ask}
+            onPress={() => router.push('/navigation')}
           />
         </Group>
 

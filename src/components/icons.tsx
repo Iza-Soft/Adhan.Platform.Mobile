@@ -105,3 +105,62 @@ export function SettingsIcon({ size = 22, color }: IconProps) {
     </Svg>
   );
 }
+
+/** Джамия: купол, минаре, основа (етап 12 – раздел „Джамии“ и точките на картата). */
+export function MosqueIcon({ size = 22, color, strokeWidth = 1.7 }: IconProps) {
+  const s = stroke(color, strokeWidth);
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M5 20v-6a7 7 0 0 1 14 0v6M3 20h18M12 4v3M19 9v11" {...s} />
+    </Svg>
+  );
+}
+
+/* ---- джамии наблизо (етап 12) ---- */
+
+export function LocateIcon({ size = 18, color }: IconProps) {
+  const s = stroke(color, 2);
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Circle cx="12" cy="12" r="4" {...s} />
+      <Path d="M12 2v3M12 19v3M2 12h3M19 12h3" {...s} />
+    </Svg>
+  );
+}
+
+export function NavigateIcon({ size = 20, color }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M3 11l18-8-8 18-2-8z" {...stroke(color, 2)} />
+    </Svg>
+  );
+}
+
+export function ShareIcon({ size = 18, color }: IconProps) {
+  const s = stroke(color, 2);
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M12 3v12M7 8l5-5 5 5" {...s} />
+      <Path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" {...s} />
+    </Svg>
+  );
+}
+
+export function CopyIcon({ size = 18, color }: IconProps) {
+  const s = stroke(color, 2);
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Rect x="8" y="8" width="12" height="12" rx="2.5" {...s} />
+      <Path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" {...s} />
+    </Svg>
+  );
+}
+
+/** Стрелка нагоре – завърта се към джамията (градуси от север). */
+export function ArrowUpIcon({ size = 16, color }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M12 19V5M6 11l6-6 6 6" {...stroke(color, 2.4)} />
+    </Svg>
+  );
+}

@@ -20,7 +20,7 @@ import expo.modules.kotlin.modules.ModuleDefinition
  * - етап 5: алармата с пълния езан (AlarmManager.setAlarmClock + foreground service +
  *   екран „Аларма“), аларма на цял екран (Android 14+), работа на заден план
  *   (оптимизация на батерията) и местоположение без Google услуги (Huawei);
- * - етап 6: звуците; етап 8: widget-ите (PrayerWidgets.kt).
+ * - етап 6: звуците; етап 8: widget-ите (PrayerWidgets.kt); етап 12: навигацията до джамия.
  */
 class AdhanNativeModule : Module() {
   private val context: Context
@@ -164,6 +164,51 @@ class AdhanNativeModule : Module() {
     // Списъкът „Оптимизация на батерията“ на Android.
     Function("openBatteryOptimizationSettings") {
       open(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+    }
+
+    /* -------------------------------------------------- навигация до джамия (етап 12) */
+
+    // Инсталирано ли е приложението (пакетите са изброени в <queries> в AndroidManifest.xml).
+    Function("isAppInstalled") { pkg: String ->
+      try {
+        context.packageManager.getPackageInfo(pkg, 0)
+        true
+      } catch (e: Exception) {
+        false
+      }
+    }
+
+    // Отваря връзката точно в това приложение (или – без пакет – в каквото избере телефонът).
+    // false – няма такова приложение.
+    Function("openInApp") { url: String, pkg: String? ->
+      val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      if (!pkg.isNullOrEmpty()) intent.setPackage(pkg)
+      try {
+        context.startActivity(intent)
+        true
+      } catch (e: ActivityNotFoundException) {
+        false
+      } catch (e: Exception) {
+        false
+      }
+    }
+
+    // Иконата на приложението като PNG (base64) – за списъка с навигации. null – няма го.
+    Function("appIcon") { pkg: String, size: Int ->
+      try {
+        val drawable = context.packageManager.getApplicationIcon(pkg)
+        val px = size.coerceIn(24, 256)
+        val bitmap = android.graphics.Bitmap.createBitmap(px, px, android.graphics.Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(bitmap)
+        drawable.setBounds(0, 0, px, px)
+        drawable.draw(canvas)
+        val out = java.io.ByteArrayOutputStream()
+        bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+        bitmap.recycle()
+        android.util.Base64.encodeToString(out.toByteArray(), android.util.Base64.NO_WRAP)
+      } catch (e: Exception) {
+        null
+      }
     }
 
     /* -------------------------------------------------- widget-и (етап 8) */

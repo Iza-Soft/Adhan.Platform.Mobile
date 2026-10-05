@@ -10,6 +10,17 @@
   <!-- Android 11+: за да види дали на телефона има Google Play Services (Huawei без Google) -->
   <queries>
     <package android:name="com.google.android.gms" />
+    <!-- Етап 12: кои приложения за навигация са инсталирани (Настройки → Навигация) -->
+    <package android:name="com.google.android.apps.maps" />
+    <package android:name="com.waze" />
+    <package android:name="com.here.app.maps" />
+    <package android:name="com.huawei.maps.app" />
+    <package android:name="app.organicmaps" />
+    <!-- „Автоматично“: има ли изобщо приложение за карти (geo:) -->
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="geo" />
+    </intent>
   </queries>
 
   <application>

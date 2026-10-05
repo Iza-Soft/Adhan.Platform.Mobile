@@ -65,7 +65,7 @@ function notifySound(key: string, bg: string, en: string, tr: string, durationSe
 /**
  * Вградените звуци. Записите на езан Мека, Медина и Ал-Акса са от колекцията на
  * PrayTimes.org, Истанбул – източникът да се уточни; изчистени, с изравнена сила (−16 LUFS);
- * откъсите с текбирите са отрязани на пауза (виж docs/PLAN.md – произходът им
+ * откъсите с текбирите са отрязани на пауза (виж PLAN.md – произходът им
  * трябва да се потвърди преди публикуване).
  */
 export const BUILTIN_SOUNDS: readonly SoundDef[] = [

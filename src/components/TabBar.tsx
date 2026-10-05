@@ -6,11 +6,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
 import { FONT_SCALE, fonts } from '@/theme/typography';
 
-import { MonthIcon, QiblaIcon, SettingsIcon, TodayIcon } from './icons';
+import { MonthIcon, MosqueIcon, QiblaIcon, SettingsIcon, TodayIcon } from './icons';
 
 const ICONS: Record<string, ComponentType<{ color: string }>> = {
   index: TodayIcon,
   qibla: QiblaIcon,
+  mosques: MosqueIcon,
   month: MonthIcon,
   settings: SettingsIcon,
 };
@@ -54,7 +55,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             accessibilityLabel={label}
           >
             <Icon color={color} />
-            <Text maxFontSizeMultiplier={FONT_SCALE.dense} style={[styles.label, { color }]}>{label}</Text>
+            <Text maxFontSizeMultiplier={FONT_SCALE.dense} numberOfLines={1} style={[styles.label, { color }]}>{label}</Text>
           </Pressable>
         );
       })}
@@ -76,5 +77,6 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(255,255,255,0.10)',
   },
   item: { flex: 1, alignItems: 'center', gap: 4, paddingVertical: 4 },
+  // 5 раздела: „Настройки“ / „Ayarlar“ трябва да се побират и на тесен телефон
   label: { fontFamily: fonts.semibold, fontSize: 10.5 },
 });

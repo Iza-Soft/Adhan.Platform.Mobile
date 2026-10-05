@@ -31,6 +31,10 @@ interface AdhanNativeModule {
   // етап 8 – widget-и
   setWidgetData?(json: string): void;
   getWidgetCount?(): number;
+  // етап 12 – навигация до джамия
+  isAppInstalled?(pkg: string): boolean;
+  openInApp?(url: string, pkg: string | null): boolean;
+  appIcon?(pkg: string, size: number): string | null;
 }
 
 /** Android: свой кратък звук – откъсът в Notifications/Ezan. */
@@ -287,4 +291,24 @@ export function setWidgetData(json: string): void {
 export function getWidgetCount(): number {
   if (!native?.getWidgetCount) return -1;
   return safe(() => native.getWidgetCount!(), -1);
+}
+
+/* ------------------------------------------------------------------ навигация (етап 12) */
+
+/** Android: инсталирано ли е приложението. null – неизвестно (iPhone, стар build). */
+export function isAppInstalled(pkg: string): boolean | null {
+  if (!native?.isAppInstalled) return null;
+  return safe(() => native.isAppInstalled!(pkg), null);
+}
+
+/** Android: отваря връзката в това приложение (без пакет – в избраното от телефона). null – няма native част. */
+export function openInApp(url: string, pkg: string | null): boolean | null {
+  if (!native?.openInApp) return null;
+  return safe(() => native.openInApp!(url, pkg), false);
+}
+
+/** Android: иконата на приложението (PNG, base64). */
+export function appIcon(pkg: string, size = 96): string | null {
+  if (!native?.appIcon) return null;
+  return safe(() => native.appIcon!(pkg, size), null);
 }

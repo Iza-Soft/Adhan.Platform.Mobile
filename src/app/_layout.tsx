@@ -91,6 +91,7 @@ export default function RootLayout() {
         <Stack.Screen name="diagnostics" />
         <Stack.Screen name="battery" />
         <Stack.Screen name="sound" />
+        <Stack.Screen name="navigation" />
       </Stack>
     </>
   );

@@ -81,6 +81,24 @@ async function getPosition(): Promise<{ latitude: number; longitude: number } | 
   }
 }
 
+/**
+ * Точната позиция сега – за „Джамии наблизо“ (етап 12). Пита за разрешение, ако още не е питано.
+ * Не променя избраното място за часовете.
+ */
+export async function currentPosition(): Promise<
+  { ok: true; latitude: number; longitude: number } | { ok: false; reason: 'denied' | 'unavailable' }
+> {
+  try {
+    let perm = await Location.getForegroundPermissionsAsync();
+    if (perm.status !== 'granted' && perm.canAskAgain) perm = await Location.requestForegroundPermissionsAsync();
+    if (perm.status !== 'granted') return { ok: false, reason: 'denied' };
+    const p = await getPosition();
+    return p ? { ok: true, latitude: p.latitude, longitude: p.longitude } : { ok: false, reason: 'unavailable' };
+  } catch {
+    return { ok: false, reason: 'unavailable' };
+  }
+}
+
 let running: Promise<void> | null = null;
 
 /** Взима текущото местоположение и го записва като мястото от GPS. Паралелни извиквания се обединяват. */

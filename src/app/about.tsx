@@ -68,6 +68,10 @@ export default function AboutScreen() {
           {source('geonames')}
           {source('praytimes')}
         </Group>
+        <Group label={a.groupMap}>
+          {source('overpass', true)}
+          {source('openfreemap')}
+        </Group>
         <Group label={a.groupPrivacy}>
           <Row first>
             <Text style={styles.privacy}>{a.privacy}</Text>

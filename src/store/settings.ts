@@ -16,6 +16,7 @@ import {
   type MethodChoice,
 } from '@/domain/calc';
 import type { AppLocation } from '@/domain/location';
+import type { NavAppId } from '@/domain/navApps';
 import { getPlace, PLACES_COUNT, placeToLocation } from '@/domain/places';
 import { countryOf } from '@/domain/resolve';
 import type { PrayerId } from '@/domain/prayers';
@@ -56,6 +57,10 @@ interface SettingsState {
   reminderMinutes: number;
   /** Вибрация при известие (Android; на iPhone решава телефонът). */
   vibrate: boolean;
+  /** С кое приложение се отваря „Упътване“ до джамия (етап 12). */
+  navApp: NavAppId;
+  /** Изборът е запомнен (листа „Отвори с…“ или Настройки → Навигация); false – питаме при „Упътване“. */
+  navRemembered: boolean;
 
   setAutoLocation: (on: boolean) => void;
   setGpsLocation: (loc: AppLocation) => void;
@@ -68,6 +73,10 @@ interface SettingsState {
   changeHijriAdjust: (delta: number) => void;
   setReminderMinutes: (n: number) => void;
   setVibrate: (on: boolean) => void;
+  /** Запомня приложението за навигация – остава и след затваряне на приложението и рестарт. */
+  setNavApp: (id: NavAppId) => void;
+  /** Забравя избора (избраното приложение е изтрито) – следващото „Упътване“ пак пита. */
+  forgetNavApp: () => void;
 }
 
 export const useSettings = create<SettingsState>()(
@@ -83,6 +92,8 @@ export const useSettings = create<SettingsState>()(
       hijriAdjust: 0,
       reminderMinutes: 0,
       vibrate: true,
+      navApp: 'auto',
+      navRemembered: false,
 
       setAutoLocation: (on) => set({ autoLocation: on }),
       setGpsLocation: (loc) => set({ gpsLocation: loc }),
@@ -98,6 +109,8 @@ export const useSettings = create<SettingsState>()(
         set((s) => ({ hijriAdjust: clamp(s.hijriAdjust + delta, HIJRI_LIMIT) })),
       setReminderMinutes: (reminderMinutes) => set({ reminderMinutes }),
       setVibrate: (vibrate) => set({ vibrate }),
+      setNavApp: (navApp) => set({ navApp, navRemembered: true }),
+      forgetNavApp: () => set({ navApp: 'auto', navRemembered: false }),
     }),
     {
       name: 'ezan.settings',
@@ -115,7 +128,7 @@ export const useSettings = create<SettingsState>()(
         return state as SettingsState;
       },
       storage: createJSONStorage(() => AsyncStorage),
-      // новите полета (reminderMinutes, vibrate) липсват в старите записи – тогава важат стойностите по подразбиране
+      // новите полета (reminderMinutes, vibrate, navApp, navRemembered) липсват в старите записи – тогава важат стойностите по подразбиране
       partialize: ({
         autoLocation,
         gpsLocation,
@@ -127,9 +140,13 @@ export const useSettings = create<SettingsState>()(
         hijriAdjust,
         reminderMinutes,
         vibrate,
+        navApp,
+        navRemembered,
       }) => ({
         reminderMinutes,
         vibrate,
+        navApp,
+        navRemembered,
         autoLocation,
         gpsLocation,
         manualLocation,
