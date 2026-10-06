@@ -19,7 +19,7 @@ import { useI18n } from '@/i18n';
 import { useLocationStatus } from '@/services/location';
 import { requestPermission, useNotificationStatus } from '@/services/notifications';
 import { useAlertPrefs } from '@/store/alertPrefs';
-import { selectLocation, useSettings } from '@/store/settings';
+import { selectHijriCalendar, selectLocation, useSettings } from '@/store/settings';
 
 export default function TodayScreen() {
   const insets = useSafeAreaInsets();
@@ -30,6 +30,7 @@ export default function TodayScreen() {
   const schedule = usePrayerSchedule(now);
   const location = useSettings(selectLocation);
   const hijriAdjust = useSettings((s) => s.hijriAdjust);
+  const hijriCalendar = useSettings(selectHijriCalendar);
   const autoLocation = useSettings((s) => s.autoLocation);
   const hasPlace = useSettings((s) => s.gpsLocation !== null || s.manualLocation !== null);
   // „idle“ – само в първия миг преди първото търсене; броим го като търсене, за да не мигне „Избери място“
@@ -73,7 +74,7 @@ export default function TodayScreen() {
         <TopBar
           city={pick(location.names)}
           gregorian={formatGregorianShort(now, t.date)}
-          hijri={formatHijri(now, t.hijriMonths, hijriAdjust)}
+          hijri={formatHijri(now, t.hijriMonths, hijriAdjust, hijriCalendar)}
           onCityPress={() => router.push('/place')}
           locating={locating}
           locatingFirstTime={!hasPlace}

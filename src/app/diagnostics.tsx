@@ -48,7 +48,7 @@ function kindOf(r: Notifications.NotificationRequest): Kind {
   const channel = (r.trigger as { channelId?: string } | null)?.channelId ?? '';
   const data = r.content.data as { kind?: string; sound?: string } | null;
   if (channel.startsWith('adhan') || data?.sound === 'adhan') return 'alarm';
-  if (channel.startsWith('reminder') || data?.kind === 'reminder' || data?.kind === 'refresh') return 'reminder';
+  if (channel.startsWith('reminder') || data?.kind === 'reminder' || data?.kind === 'refresh' || data?.kind === 'holiday') return 'reminder';
   if (channel.startsWith('prayer') || data?.kind === 'prayer') return 'notification';
   return 'other';
 }

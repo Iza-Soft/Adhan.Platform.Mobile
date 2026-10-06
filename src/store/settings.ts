@@ -16,6 +16,8 @@ import {
   type MethodChoice,
 } from '@/domain/calc';
 import type { AppLocation } from '@/domain/location';
+import { resolveHolidaySource, type HolidayId, type HolidaySource, type HolidaySourceChoice } from '@/domain/holidays';
+import type { HijriCalendar } from '@/domain/hijriTable';
 import type { NavAppId } from '@/domain/navApps';
 import { getPlace, PLACES_COUNT, placeToLocation } from '@/domain/places';
 import { countryOf } from '@/domain/resolve';
@@ -61,6 +63,10 @@ interface SettingsState {
   navApp: NavAppId;
   /** Изборът е запомнен (листа „Отвори с…“ или Настройки → Навигация); false – питаме при „Упътване“. */
   navRemembered: boolean;
+  /** Чии дати на празниците (етап 13): „Автоматично“ – според мястото. */
+  holidaySource: HolidaySourceChoice;
+  /** Напомняне за всеки празник поотделно (етап 13). */
+  holidayReminders: Partial<Record<HolidayId, boolean>>;
 
   setAutoLocation: (on: boolean) => void;
   setGpsLocation: (loc: AppLocation) => void;
@@ -77,6 +83,8 @@ interface SettingsState {
   setNavApp: (id: NavAppId) => void;
   /** Забравя избора (избраното приложение е изтрито) – следващото „Упътване“ пак пита. */
   forgetNavApp: () => void;
+  setHolidaySource: (choice: HolidaySourceChoice) => void;
+  setHolidayReminder: (id: HolidayId, on: boolean) => void;
 }
 
 export const useSettings = create<SettingsState>()(
@@ -94,6 +102,8 @@ export const useSettings = create<SettingsState>()(
       vibrate: true,
       navApp: 'auto',
       navRemembered: false,
+      holidaySource: 'auto',
+      holidayReminders: {},
 
       setAutoLocation: (on) => set({ autoLocation: on }),
       setGpsLocation: (loc) => set({ gpsLocation: loc }),
@@ -111,6 +121,8 @@ export const useSettings = create<SettingsState>()(
       setVibrate: (vibrate) => set({ vibrate }),
       setNavApp: (navApp) => set({ navApp, navRemembered: true }),
       forgetNavApp: () => set({ navApp: 'auto', navRemembered: false }),
+      setHolidaySource: (holidaySource) => set({ holidaySource }),
+      setHolidayReminder: (id, on) => set((s) => ({ holidayReminders: { ...s.holidayReminders, [id]: on } })),
     }),
     {
       name: 'ezan.settings',
@@ -142,7 +154,11 @@ export const useSettings = create<SettingsState>()(
         vibrate,
         navApp,
         navRemembered,
+        holidaySource,
+        holidayReminders,
       }) => ({
+        holidaySource,
+        holidayReminders,
         reminderMinutes,
         vibrate,
         navApp,
@@ -209,4 +225,14 @@ function withTurkishName<T extends AppLocation | null | undefined>(loc: T): T {
   } catch {
     return loc;
   }
+}
+
+/** Чии дати на празниците важат сега (етап 13) – „Автоматично“ според държавата на мястото. */
+export function selectHolidaySource(s: SettingsState): HolidaySource {
+  return resolveHolidaySource(s.holidaySource ?? 'auto', countryOf(selectLocation(s)));
+}
+
+/** Календарът по Хиджра за датите в приложението – същият като за празниците. */
+export function selectHijriCalendar(s: SettingsState): HijriCalendar {
+  return selectHolidaySource(s) === 'ummalqura' ? 'ummalqura' : 'diyanet';
 }

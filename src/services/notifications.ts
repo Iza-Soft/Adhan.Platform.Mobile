@@ -13,13 +13,13 @@ import {
   type NativeAlarm,
 } from '../../modules/adhan-native';
 
-import { planNotifications, type PlannedNotification } from '@/domain/notifications';
+import { NOTIFICATION_LIMIT, planHolidayReminders, planNotifications, type PlannedNotification } from '@/domain/notifications';
 import { PRAYERS, type PrayerId } from '@/domain/prayers';
 import { findSound, notificationFileName, type SoundDef } from '@/domain/sounds';
 import { getI18n } from '@/i18n';
 import { PHASE_GRADIENTS } from '@/theme/gradients';
 import { useAlertPrefs } from '@/store/alertPrefs';
-import { selectLocation, selectTimesOptions, useSettings } from '@/store/settings';
+import { selectHolidaySource, selectLocation, selectTimesOptions, useSettings } from '@/store/settings';
 import { useSounds } from '@/store/sounds';
 
 /**
@@ -232,16 +232,31 @@ async function doReschedule(): Promise<void> {
 
   const s = useSettings.getState();
   const { t, pick } = getI18n();
-  const plan =
+  // етап 13: напомнянията за празниците – първо те, после молитвите в оставащите места
+  const holidayPlan =
     permission === 'granted'
-      ? planNotifications({
+      ? planHolidayReminders({
           now: new Date(),
           options: selectTimesOptions(s).options,
-          modes: useAlertPrefs.getState().modes,
-          reminderMinutes: s.reminderMinutes,
-          placeName: pick(selectLocation(s).names),
-          texts: { prayers: t.prayers, ...t.notifications },
+          source: selectHolidaySource(s),
+          enabled: s.holidayReminders ?? {},
+          texts: t.holidays,
         })
+      : [];
+  const plan =
+    permission === 'granted'
+      ? [
+          ...holidayPlan,
+          ...planNotifications({
+            now: new Date(),
+            options: selectTimesOptions(s).options,
+            modes: useAlertPrefs.getState().modes,
+            reminderMinutes: s.reminderMinutes,
+            placeName: pick(selectLocation(s).names),
+            texts: { prayers: t.prayers, ...t.notifications },
+            limit: NOTIFICATION_LIMIT - holidayPlan.length,
+          }),
+        ].sort((a, b) => a.at.getTime() - b.at.getTime())
       : [];
 
   const sounds = soundChoice();

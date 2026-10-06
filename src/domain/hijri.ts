@@ -1,7 +1,12 @@
+import { hijriFromTable, type HijriCalendar } from './hijriTable';
+
 /**
  * Дата по Хиджра.
- * 1) Първо опитва календара Umm al-Qura през Intl (ако телефонът го поддържа).
- * 2) Иначе ползва табличния („кувейтски“) алгоритъм, който е чисто аритметичен.
+ * 0) Етап 13: от таблицата на календара (src/domain/hijriTable.ts) – Диянет / Мюфтийството
+ *    или Умм ал-Кура – точно като обявените дати. Изчисленията по-долу са само резерва
+ *    извън годините на таблицата.
+ * 1) Календарът Umm al-Qura през Intl (ако телефонът го поддържа).
+ * 2) Иначе табличният („кувейтски“) алгоритъм, който е чисто аритметичен.
  * И двата могат да се разминат с 1–2 дни с датата, обявена от Мюфтийството
  * (тя зависи от наблюдението на луната). Затова има `adjustDays` –
  * в етап 2 става настройка „Корекция на датата по Хиджра“.
@@ -88,13 +93,18 @@ export function tabularHijri(date: Date): HijriDate {
   return { day, month, year };
 }
 
-export function toHijri(date: Date, adjustDays = 0): HijriDate {
+export function toHijri(date: Date, adjustDays = 0, calendar: HijriCalendar = 'diyanet'): HijriDate {
   const d = new Date(date.getFullYear(), date.getMonth(), date.getDate() + adjustDays, 12);
-  return fromIntl(d) ?? tabularHijri(d);
+  return hijriFromTable(d, calendar) ?? fromIntl(d) ?? tabularHijri(d);
 }
 
 /** „17 Ребиул-ахир 1448“ или „17 Rabi al-Thani 1448“ */
-export function formatHijri(date: Date, monthNames: readonly string[], adjustDays = 0): string {
-  const h = toHijri(date, adjustDays);
+export function formatHijri(
+  date: Date,
+  monthNames: readonly string[],
+  adjustDays = 0,
+  calendar: HijriCalendar = 'diyanet',
+): string {
+  const h = toHijri(date, adjustDays, calendar);
   return `${h.day} ${monthNames[h.month - 1]} ${h.year}`;
 }

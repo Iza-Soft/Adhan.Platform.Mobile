@@ -92,6 +92,7 @@ export default function RootLayout() {
         <Stack.Screen name="battery" />
         <Stack.Screen name="sound" />
         <Stack.Screen name="navigation" />
+        <Stack.Screen name="holiday-source" />
       </Stack>
     </>
   );

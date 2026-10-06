@@ -1,4 +1,5 @@
 import { formatHM } from './format';
+import { holidaysInYear, reminderDayOf, type HolidayId, type HolidaySource } from './holidays';
 import { PRAYER_IDS, PRAYERS, type PrayerId } from './prayers';
 import { computeDay, type TimesOptions } from './times';
 
@@ -13,7 +14,7 @@ export type AlertMode = 'off' | 'notify' | 'adhan';
 /** Кой звук: кратък сигнал или езан (в етап 4 – временен звук). */
 export type SoundKind = 'chime' | 'adhan';
 
-export type NotificationKind = 'prayer' | 'reminder' | 'refresh';
+export type NotificationKind = 'prayer' | 'reminder' | 'refresh' | 'holiday';
 
 export interface PlannedNotification {
   /** Стабилен идентификатор: „ezan-20261001-maghrib-prayer“. */
@@ -157,3 +158,56 @@ export function planSignature(plan: PlannedNotification[], extra: string): strin
     plan.map((n) => `${n.id}@${n.at.getTime()}:${n.sound}:${n.title}:${n.body}`).join('|')
   );
 }
+
+/* ------------------------------------------------------------------ празници (етап 13) */
+
+export interface HolidayReminderInput {
+  now: Date;
+  options: TimesOptions;
+  source: HolidaySource;
+  /** За кои празници е включено напомнянето (всеки поотделно). */
+  enabled: Partial<Record<HolidayId, boolean>>;
+  texts: {
+    names: Record<HolidayId, string>;
+    about: Record<HolidayId, string>;
+    notifyTonight: (name: string) => string;
+    notifyTomorrow: (name: string) => string;
+  };
+  /** За колко дни напред. */
+  days?: number;
+}
+
+export const HOLIDAY_PLAN_DAYS = 30;
+
+/**
+ * Напомнянията за празниците: при Магриб – свещената нощ същата вечер („Тази вечер: Нощ Регаиб“),
+ * празникът – вечерта преди („Утре: Курбан Байрам“).
+ */
+export function planHolidayReminders(input: HolidayReminderInput): PlannedNotification[] {
+  const { now, options, source, enabled, texts } = input;
+  const days = input.days ?? HOLIDAY_PLAN_DAYS;
+  if (!Object.values(enabled).some(Boolean)) return [];
+  const until = now.getTime() + days * 86_400_000;
+  const out: PlannedNotification[] = [];
+  for (const year of [now.getFullYear(), now.getFullYear() + 1]) {
+    for (const h of holidaysInYear(source, year)) {
+      if (!enabled[h.id]) continue;
+      const day = reminderDayOf(h);
+      if (day.getTime() > until + 86_400_000) continue;
+      const maghrib = computeDay(day, options)[PRAYER_IDS.indexOf('maghrib')].time;
+      if (isNaN(maghrib.getTime()) || maghrib.getTime() < now.getTime() + MIN_LEAD_MS || maghrib.getTime() > until) continue;
+      const name = texts.names[h.id];
+      out.push({
+        id: `ezan-holiday-${ymd(h.date)}-${h.id}`,
+        at: maghrib,
+        kind: 'holiday',
+        prayer: null,
+        sound: 'chime',
+        title: h.night ? texts.notifyTonight(name) : texts.notifyTomorrow(name),
+        body: texts.about[h.id],
+      });
+    }
+  }
+  return out.sort((a, b) => a.at.getTime() - b.at.getTime());
+}
+

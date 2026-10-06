@@ -1,8 +1,9 @@
 import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GeometricPattern } from '@/components/GeometricPattern';
+import { HolidaysView } from '@/components/holidays/HolidaysView';
 import {
   HIJRI_SEPARATOR_HEIGHT,
   HijriMonthSeparator,
@@ -17,12 +18,45 @@ import { computeMonth } from '@/domain/times';
 import { useNow } from '@/hooks/useNow';
 import { useTimesOptions } from '@/hooks/useTimesOptions';
 import { useI18n } from '@/i18n';
-import { useSettings } from '@/store/settings';
+import { selectHijriCalendar, useSettings } from '@/store/settings';
 import { colors } from '@/theme/colors';
 import { fonts } from '@/theme/typography';
 
+/**
+ * „Месец“: превключвател „Часове | Празници“ (етап 13) – часовете за месеца или
+ * ислямските празници за годината.
+ */
 export default function MonthScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useI18n();
+  const [view, setView] = useState<'times' | 'holidays'>('times');
+  return (
+    <View style={[styles.root, { paddingTop: insets.top }]}>
+      <GeometricPattern />
+      <View style={styles.switch} accessibilityRole="tablist">
+        {(['times', 'holidays'] as const).map((v) => {
+          const on = v === view;
+          return (
+            <Pressable
+              key={v}
+              onPress={() => setView(v)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: on }}
+              style={[styles.switchBtn, on && styles.switchOn]}
+            >
+              <Text style={[styles.switchText, on && styles.switchTextOn]}>
+                {v === 'times' ? t.holidays.tabTimes : t.holidays.tabHolidays}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      {view === 'times' ? <MonthTimes /> : <HolidaysView />}
+    </View>
+  );
+}
+
+function MonthTimes() {
   const tabBarHeight = useTabBarHeight();
   const { t, pick } = useI18n();
   const now = useNow(60_000); // тук е достатъчно веднъж в минута
@@ -36,17 +70,18 @@ export default function MonthScreen() {
 
   const { options, key } = useTimesOptions();
   const hijriAdjust = useSettings((s) => s.hijriAdjust);
+  const calendar = useSettings(selectHijriCalendar);
 
   // Заглавието и бутоните реагират веднага, а таблицата се смята „на заден план“:
   // useDeferredValue първо рисува екрана със старата таблица (или с индикатор при първо
   // отваряне), после изчислява новия месец. Така смяната на месеца не „замръзва“.
-  const request = useMemo(() => ({ y: ym.y, m: ym.m, key, hijriAdjust }), [ym.y, ym.m, key, hijriAdjust]);
+  const request = useMemo(() => ({ y: ym.y, m: ym.m, key, hijriAdjust, calendar }), [ym.y, ym.m, key, hijriAdjust, calendar]);
   const shown = useDeferredValue(request, null);
   const pending = shown !== request;
   const table = useMemo(() => {
     if (!shown) return null;
     const days = computeMonth(shown.y, shown.m, options);
-    return { days, hijri: days.map((d) => toHijri(d.date, shown.hijriAdjust)) };
+    return { days, hijri: days.map((d) => toHijri(d.date, shown.hijriAdjust, shown.calendar)) };
     // options се сменя заедно с key
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shown]);
@@ -57,8 +92,8 @@ export default function MonthScreen() {
 
   // „Ребиул-ахир – Джемазиел-евел 1448“ (или две години, ако месецът ги пресича) –
   // смята се само за първия и последния ден, за да е веднага в заглавието
-  const first = toHijri(new Date(ym.y, ym.m, 1), hijriAdjust);
-  const last = toHijri(new Date(ym.y, ym.m + 1, 0), hijriAdjust);
+  const first = toHijri(new Date(ym.y, ym.m, 1), hijriAdjust, calendar);
+  const last = toHijri(new Date(ym.y, ym.m + 1, 0), hijriAdjust, calendar);
   const hijriRange =
     first.month === last.month
       ? `${t.hijriMonths[first.month - 1]} ${first.year}`
@@ -82,8 +117,7 @@ export default function MonthScreen() {
   const location = options.location;
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
-      <GeometricPattern />
+    <View style={styles.inner}>
       <MonthHeader
         title={`${t.date.monthsFull[ym.m]} ${ym.y}`}
         hijriRange={hijriRange}
@@ -130,6 +164,23 @@ export default function MonthScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.base },
+  inner: { flex: 1 },
+  switch: {
+    flexDirection: 'row',
+    gap: 4,
+    padding: 4,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 2,
+    borderRadius: 14,
+    backgroundColor: 'rgba(6,10,20,0.5)',
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+  },
+  switchBtn: { flex: 1, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  switchOn: { backgroundColor: colors.gold },
+  switchText: { fontFamily: fonts.bold, fontSize: 14, color: colors.muted },
+  switchTextOn: { fontFamily: fonts.extrabold, color: colors.goldInk },
   card: {
     flex: 1,
     marginHorizontal: 10,

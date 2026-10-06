@@ -26,7 +26,7 @@ import { countryOf } from '@/domain/resolve';
 import { countryName } from '@/domain/worldCities';
 import { useI18n } from '@/i18n';
 import { refreshLocation, useLocationStatus } from '@/services/location';
-import { selectLocation, useSettings } from '@/store/settings';
+import { selectHolidaySource, selectLocation, useSettings } from '@/store/settings';
 import { colors } from '@/theme/colors';
 import { fonts } from '@/theme/typography';
 
@@ -230,6 +230,20 @@ export default function SettingsScreen() {
             onPlus={() => s.changeHijriAdjust(1)}
             minusLabel={t.settings.decrease(t.settings.hijri)}
             plusLabel={t.settings.increase(t.settings.hijri)}
+          />
+        </Group>
+
+        {/* ---- Празници (етап 13): чии дати – и датата по Хиджра в „Днес“ и „Месец“ ---- */}
+        <Group label={t.holidaySource.group} note={t.holidaySource.note}>
+          <NavRow
+            first
+            label={t.holidaySource.row}
+            value={
+              s.holidaySource === 'auto' || !s.holidaySource
+                ? t.holidaySource.autoValue(t.holidaySource.short[selectHolidaySource(s)])
+                : t.holidaySource.short[s.holidaySource]
+            }
+            onPress={() => router.push('/holiday-source')}
           />
         </Group>
 
