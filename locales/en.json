@@ -1,9 +1,9 @@
 {
   "ios": {
-    "CFBundleDisplayName": "Adhan",
-    "NSLocationWhenInUseUsageDescription": "Adhan uses your location to show the prayer times for the place where you are and the mosques nearby."
+    "CFBundleDisplayName": "Hayya",
+    "NSLocationWhenInUseUsageDescription": "Hayya uses your location to show the prayer times for the place where you are and the mosques nearby."
   },
   "android": {
-    "app_name": "Adhan"
+    "app_name": "Hayya"
   }
 }

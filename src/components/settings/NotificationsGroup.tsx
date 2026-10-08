@@ -4,7 +4,7 @@ import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { formatGregorianShort, formatHM } from '@/domain/format';
 import { useI18n } from '@/i18n';
-import { openFullScreenIntentSettings } from '../../../modules/adhan-native';
+import { openFullScreenIntentSettings } from '../../../modules/hayya-native';
 
 import { openExactAlarmSettings, requestPermission, useNotificationStatus } from '@/services/notifications';
 import { REMINDER_CHOICES, useSettings } from '@/store/settings';

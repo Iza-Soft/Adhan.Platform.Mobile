@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="ezan_widget_next_name">Sıradaki namaz</string>
+  <string name="ezan_widget_next_desc">Sıradaki namaz ve kalan süre</string>
+  <string name="ezan_widget_day_name">Günün vakitleri</string>
+  <string name="ezan_widget_day_desc">Sıradaki namaz, kalan süre ve günün tüm vakitleri</string>
+  <string name="ezan_widget_bar_name">Şerit</string>
+  <string name="ezan_widget_bar_desc">Sıradaki namaz ve kalan süre tek satırda</string>
+  <string name="ezan_widget_empty">Vakitleri görmek için Hayya’yı açın.</string>
+  <string name="ezan_widget_sample_place">SOFYA</string>
+  <string name="ezan_widget_sample_name">İkindi</string>
+  <string name="ezan_widget_sample_at">16:33</string>
+  <string name="ezan_widget_sample_at_long">saat 16:33</string>
+  <string name="ezan_widget_sample_until">İkindi vaktine kalan</string>
+  <string name="ezan_widget_sample_label">Sıradaki · </string>
+</resources>

@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["HayyaNativeModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.hayyanative.HayyaNativeModule"]
+  }
+}

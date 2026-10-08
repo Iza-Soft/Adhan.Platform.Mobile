@@ -31,7 +31,8 @@ describe('джамии – заявката и поверителността', 
     const a = privacyArea(41.016512, 28.974931, NEAR_RADIUS_M);
     expect(a).toEqual({ lat: 41.02, lon: 28.97, radiusM: 3500 });
     const q = overpassQuery(41.016512, 28.974931, NEAR_RADIUS_M);
-    expect(q).toContain('(around:3500,41.02,28.97)');
+    // квадрат около закръглената точка (41.02, 28.97) с радиус 2 + 1,5 км
+    expect(q).toContain('[bbox:40.9886,28.9283,41.0514,29.0117]');
     expect(q).toContain('["amenity"="place_of_worship"]["religion"="muslim"]');
     expect(q).not.toContain('41.0165');
   });

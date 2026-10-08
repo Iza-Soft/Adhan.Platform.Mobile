@@ -5,9 +5,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   isIgnoringBatteryOptimizations,
+  openAppLaunchSettings,
   openAppSettings,
   openBatteryOptimizationSettings,
-} from '../../modules/adhan-native';
+} from '../../modules/hayya-native';
 
 import { GeometricPattern } from '@/components/GeometricPattern';
 import { ChevronIcon } from '@/components/icons';
@@ -35,6 +36,7 @@ export default function BatteryScreen() {
   const b = t.battery;
   const [brand, setBrand] = useState<BatteryBrand>(DETECTED);
   const [ok, setOk] = useState(() => isIgnoringBatteryOptimizations());
+  const huawei = brand === 'huawei';
 
   // след връщане от настройките на телефона – проверява наново
   useEffect(() => {
@@ -95,14 +97,15 @@ export default function BatteryScreen() {
           ))}
         </View>
 
+        {/* Huawei: направо „Стартиране на приложения“; останалите – настройките на Hayya */}
         <Pressable
-          onPress={openAppSettings}
+          onPress={huawei ? openAppLaunchSettings : openAppSettings}
           accessibilityRole="button"
           style={({ pressed }) => [styles.button, pressed && styles.pressed]}
         >
-          <Text style={styles.buttonText}>{b.open}</Text>
+          <Text style={styles.buttonText}>{huawei ? b.openHuawei : b.open}</Text>
         </Pressable>
-        {brand === 'other' && (
+        {(brand === 'other' || huawei) && (
           <Pressable onPress={openBatteryOptimizationSettings} accessibilityRole="button" style={styles.secondary}>
             <Text style={styles.link}>{b.openList}</Text>
           </Pressable>
@@ -114,6 +117,8 @@ export default function BatteryScreen() {
             {ok ? b.ok : ok === false ? b.bad : b.unknown}
           </Text>
         </View>
+        {/* Huawei: проверката вижда само „Оптимизация на батерията“ (стъпка 4), не „Стартиране на приложения“ */}
+        {huawei && <Text style={styles.checkNote}>{b.huaweiCheckNote}</Text>}
 
         <Text style={styles.other}>{b.otherPhone}</Text>
         <View style={styles.chips}>
@@ -198,6 +203,7 @@ const styles = StyleSheet.create({
   statusBad: { backgroundColor: 'rgba(227,154,75,0.12)', borderColor: 'rgba(227,154,75,0.45)' },
   statusLabel: { fontFamily: fonts.semibold, fontSize: 13.5, color: colors.text },
   statusValue: { fontFamily: fonts.bold, fontSize: 13.5, color: colors.muted },
+  checkNote: { fontFamily: fonts.regular, fontSize: 12.5, lineHeight: 18, color: colors.muted, paddingHorizontal: 4, marginTop: -4 },
   okText: { color: GREEN },
   badText: { color: colors.warn },
   other: { fontFamily: fonts.bold, fontSize: 11, letterSpacing: 1.1, color: colors.muted, marginTop: 8, paddingLeft: 4 },

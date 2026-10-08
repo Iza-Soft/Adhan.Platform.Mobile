@@ -51,11 +51,16 @@ export default function AboutScreen() {
       >
         <View style={styles.hero}>
           <View style={styles.logo}>
-            <Text style={styles.logoText}>أذان</Text>
+            <Text style={styles.logoText}>حَيَّ</Text>
           </View>
           <Text style={styles.appName}>{a.name}</Text>
           <Text style={styles.tagline}>{a.tagline}</Text>
           <Text style={styles.version}>{a.version(APP_VERSION)}</Text>
+          {/* името: от призива в езана „حَيَّ عَلَى الصَّلَاة“ */}
+          <Text style={styles.callAr} importantForAccessibility="no" accessibilityElementsHidden>
+            حَيَّ عَلَى الصَّلَاة
+          </Text>
+          <Text style={styles.meaning}>{a.meaning}</Text>
         </View>
 
         <Group label={a.groupTimes}>
@@ -100,7 +105,9 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(212,168,87,0.45)',
     marginBottom: 10,
   },
-  logoText: { fontFamily: fonts.arabicBold, fontSize: 30, color: colors.gold },
+  logoText: { fontFamily: fonts.arabicBold, fontSize: 36, lineHeight: 52, color: colors.gold },
+  callAr: { fontFamily: fonts.arabic, fontSize: 16, lineHeight: 26, color: colors.gold, marginTop: 10 },
+  meaning: { fontFamily: fonts.regular, fontSize: 12, lineHeight: 17, color: colors.muted, textAlign: 'center', paddingHorizontal: 30 },
   appName: { fontFamily: fonts.extrabold, fontSize: 26, color: colors.text },
   tagline: { fontFamily: fonts.medium, fontSize: 13.5, color: colors.textDim },
   version: { fontFamily: fonts.semibold, fontSize: 12.5, color: colors.muted, marginTop: 2 },

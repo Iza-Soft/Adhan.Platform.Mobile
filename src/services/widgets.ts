@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 
+import { skylineOf } from '@/domain/skylines';
 import { planWidget } from '@/domain/widget';
 import { getI18n } from '@/i18n';
 import { selectLocation, selectTimesOptions, useSettings } from '@/store/settings';
@@ -27,9 +28,10 @@ export function updateWidgets(now: Date = new Date()): void {
       texts: { prayers: t.prayers, ...t.hero, ...t.widget },
       gradients: PHASE_GRADIENTS,
     });
-    const signature = JSON.stringify(entries);
+    const skyline = skylineOf(s.skyline);
+    const signature = JSON.stringify({ entries, skyline });
     if (signature === lastSignature) return;
-    pushWidgetEntries(entries, t.widget.empty);
+    pushWidgetEntries(entries, t.widget.empty, skyline);
     lastSignature = signature;
   } catch (e) {
     console.warn('[widgets]', e);

@@ -1,3 +1,4 @@
+import type { SkylineId } from '@/domain/skylines';
 import type { WidgetEntry } from '@/domain/widget';
 
 import { prayerArabicWidget, prayerWidget, type PrayerWidgetProps } from './PrayerWidget';
@@ -5,9 +6,10 @@ import { prayerArabicWidget, prayerWidget, type PrayerWidgetProps } from './Pray
 /**
  * iPhone: кадрите стават timeline на WidgetKit – iOS сам сменя кадъра в часа на всяка
  * молитва и в полунощ. След последния кадър (ако приложението не се отваря 7 дни) –
- * „Отвори Езан…“.
+ * „Отвори Hayya…“.
  */
-export function pushWidgetEntries(entries: WidgetEntry[], emptyText: string): void {
+// _skyline: widget-ите на iPhone нямат силует (на Android – ъгълът на „Следваща“)
+export function pushWidgetEntries(entries: WidgetEntry[], emptyText: string, _skyline?: SkylineId): void {
   if (!entries.length) {
     const empty: PrayerWidgetProps = { empty: true, emptyText };
     prayerWidget.updateSnapshot(empty);

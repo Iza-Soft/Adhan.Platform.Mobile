@@ -23,6 +23,10 @@ const BODY = {
 const ok = (body: unknown) => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) });
 const status = (code: number) => Promise.resolve({ ok: false, status: code, json: () => Promise.resolve({}) });
 const offline = () => Promise.reject(new TypeError('Network request failed'));
+const html = () => Promise.resolve({ ok: true, status: 200, json: () => Promise.reject(new SyntaxError('Unexpected token <')) });
+/** Сървър, който мълчи, докато заявката не бъде спряна (AbortController). */
+const silent = (_url: string, init: { signal: AbortSignal }) =>
+  new Promise((_, reject) => init.signal.addEventListener('abort', () => reject(new Error('Aborted'))));
 
 let fetchMock: jest.Mock;
 let service: Service;
@@ -54,7 +58,7 @@ describe('джамии – мрежата и кешът', () => {
     fetchMock.mockImplementation(() => ok(BODY));
     await service.loadMosques(ME.lat, ME.lon, 2000, 'bg');
     const body = decodeURIComponent(fetchMock.mock.calls[0][1].body);
-    expect(body).toContain('around:3500,41.02,28.97');
+    expect(body).toContain('[bbox:40.9886,28.9283,41.0514,29.0117]');
     expect(body).not.toContain('41.0165');
   });
 
@@ -70,7 +74,41 @@ describe('джамии – мрежата и кешът', () => {
     fetchMock.mockImplementationOnce(() => status(504)).mockImplementationOnce(() => ok(BODY));
     const r = await service.loadMosques(ME.lat, ME.lon, 2000, 'bg');
     expect(r.mosques).toHaveLength(1);
-    expect(fetchMock.mock.calls[1][0]).toContain('kumi.systems');
+    expect(fetchMock.mock.calls[0][0]).toContain('private.coffee');
+    expect(fetchMock.mock.calls[1][0]).toContain('overpass-api.de');
+  });
+
+  it('бавен първи сървър → след 5 сек. пита и втория и взима неговия отговор', async () => {
+    jest.useFakeTimers();
+    fetchMock.mockImplementationOnce(silent).mockImplementationOnce(() => ok(BODY));
+    const job = service.loadMosques(ME.lat, ME.lon, 2000, 'bg');
+    await jest.advanceTimersByTimeAsync(4_900);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    await jest.advanceTimersByTimeAsync(200);
+    const r = await job;
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(r.mosques).toHaveLength(1);
+    // първата заявка е спряна
+    expect((fetchMock.mock.calls[0][1].signal as AbortSignal).aborted).toBe(true);
+  });
+
+  it('и двата сървъра мълчат → „Сървърът не отговаря“, а не „Няма интернет“', async () => {
+    jest.useFakeTimers();
+    fetchMock.mockImplementation(silent);
+    const job = service.loadMosques(ME.lat, ME.lon, 2000, 'bg');
+    const check = expect(job).rejects.toMatchObject({ reason: 'server' });
+    await jest.advanceTimersByTimeAsync(30_000);
+    await check;
+  });
+
+  it('HTML вместо JSON (претоварен сървър) → „server“', async () => {
+    fetchMock.mockImplementation(html);
+    await expect(service.loadMosques(ME.lat, ME.lon, 2000, 'bg')).rejects.toMatchObject({ reason: 'server' });
+  });
+
+  it('единият без връзка, другият с грешка → „server“ (интернет има)', async () => {
+    fetchMock.mockImplementationOnce(offline).mockImplementationOnce(() => status(429));
+    await expect(service.loadMosques(ME.lat, ME.lon, 2000, 'bg')).rejects.toMatchObject({ reason: 'server' });
   });
 
   it('„Query timed out“ с код 200 е грешка, а не „няма джамии“', async () => {
@@ -101,6 +139,7 @@ describe('джамии – мрежата и кешът', () => {
     await service.loadMosques(ME.lat, ME.lon, 2000, 'bg');
     await service.loadMosques(ME.lat, ME.lon, 10000, 'bg');
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(decodeURIComponent(fetchMock.mock.calls[1][1].body)).toContain('around:11500,');
+    // 10 + 1,5 км около 41.02 → ± 0,1033°
+    expect(decodeURIComponent(fetchMock.mock.calls[1][1].body)).toContain('[bbox:40.9167,');
   });
 });

@@ -1,6 +1,6 @@
 import { Linking, Platform } from 'react-native';
 
-import { appIcon, isAppInstalled, openInApp } from '../../modules/adhan-native';
+import { appIcon, isAppInstalled, openInApp } from '../../modules/hayya-native';
 
 import {
   modeFor,

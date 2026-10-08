@@ -3,6 +3,7 @@ import type { PrayerId } from '@/domain/prayers';
 import type { AlertMode } from '@/store/alertPrefs';
 import type { BatteryBrand } from '@/domain/device';
 import type { HolidayId } from '@/domain/holidays';
+import type { SkylineId } from '@/domain/skylines';
 
 /**
  * Всички текстове на приложението на двата езика.
@@ -120,7 +121,7 @@ export const bg = {
     tomorrowShort: (time: string) => `утре ${time}`,
     until: (name: string) => `остават до ${name}`,
     left: 'остават',
-    empty: 'Отвори Езан, за да се покажат часовете.',
+    empty: 'Отвори Hayya, за да се покажат часовете.',
   },
 
   notifications: {
@@ -131,7 +132,7 @@ export const bg = {
       `Следваща: ${prayer} в ${time}${tomorrow ? ' (утре)' : ''}`,
     reminderTitle: (prayer: string, minutes: number, time: string) => `${prayer} след ${minutes} мин. – ${time}`,
     reminderBody: (place: string) => `Време е за абдест и подготовка за намаза · ${place}`,
-    refreshTitle: 'Отвори Езан',
+    refreshTitle: 'Отвори Hayya',
     refreshBody: 'Отвори приложението, за да продължат известията за намаз.',
     channelPrayer: 'Молитви',
     channelAdhan: 'Аларма',
@@ -164,7 +165,7 @@ export const bg = {
     diagnostics: 'Проверка на известията',
     diag: {
       title: 'Проверка на известията',
-      subtitle: 'Дали телефонът показва известията на Езан навреме – и какво да оправиш, ако не.',
+      subtitle: 'Дали телефонът показва известията на Hayya навреме – и какво да оправиш, ако не.',
       refresh: 'Обнови',
       updated: (time: string) => `Обновено в ${time}`,
       status: 'Състояние',
@@ -178,11 +179,16 @@ export const bg = {
       test: 'Пробно известие',
         testNotification: 'Известие',
       testIn: (s: number) => `след ${s} сек.`,
-      testHint: 'Идва след 10 сек. Заключи телефона, за да го видиш и чуеш както ще идва. Звукът на алармата се преслушва в Настройки → Звуци.',
+      testHint: 'Идва след 10 сек. Заключи телефона, за да го видиш и чуеш както ще идва.',
+      testAlarm: 'Пробна аларма',
+      testAlarmButton: 'Аларма',
+      testAlarmHint: (prayer: string) =>
+        `Звъни след 10 сек. на цял екран, със звука за ${prayer} – точно както ще звъни в часа за молитва. Заключи телефона и изчакай.`,
       recent: 'Последни известия',
-      recentNone: 'Още няма показани известия от Езан.',
+      recentNone: 'Още няма показани известия от Hayya.',
+      recentNote: 'Записва се всяко известие, напомняне и аларма – и ако е изтрито от лентата, без да е отворено.',
       onTime: 'навреме',
-      late: (s: number) => (s < 60 ? `+${s} сек.` : `+${Math.round(s / 6) / 10} мин.`),
+      late: (s: number) => (s < 60 ? `+${s} сек.` : `+${String(Math.round(s / 6) / 10).replace('.', ',')} мин.`),
       plannedShown: (planned: string, shown: string) => `планирано ${planned} · показано ${shown}`,
       upcoming: 'Следващи известия',
       kindAlarm: 'Аларма',
@@ -194,7 +200,7 @@ export const bg = {
       channelLine: (importance: number, sound: string, vibrate: boolean, usage: string) =>
         `важност ${importance} · звук ${sound} · вибрация ${vibrate ? 'да' : 'не'} · поток ${usage}`,
       reset: 'Пренасрочи всички известия',
-      resetHint: 'Трие всички известия на Езан и ги планира наново по текущите настройки. Ползвай го, ако нещо изглежда объркано.',
+      resetHint: 'Трие всички известия на Hayya и ги планира наново по текущите настройки. Ползвай го, ако нещо изглежда объркано.',
       resetDone: '✓ Всички известия са планирани наново.',
       fullScreenOk: 'Аларма на цял екран',
       fullScreenBad: 'Аларма на цял екран е изключена',
@@ -298,7 +304,7 @@ export const bg = {
   },
 
   alarm: {
-    app: 'Езан',
+    app: 'Hayya',
     title: (prayer: string) => `Време е за ${prayer}`,
     stop: 'Спри езана',
     stopAlarm: 'Спри алармата',
@@ -311,10 +317,13 @@ export const bg = {
 
   battery: {
     title: 'Работа на заден план',
-    lede: 'За да пести батерия, телефонът може да „приспи“ Езан и алармата да закъснее или да не звънне. Разреши на приложението да работи без ограничения.',
+    lede: 'За да пести батерия, телефонът може да „приспи“ Hayya и алармата да закъснее или да не звънне. Разреши на приложението да работи без ограничения.',
     yourPhone: 'Твоят телефон',
-    open: 'Отвори настройките на Езан',
+    open: 'Отвори настройките на Hayya',
     openList: 'Списък „Оптимизация на батерията“',
+    openHuawei: 'Отвори „Стартиране на приложения“',
+    huaweiCheckNote:
+      'Проверката вижда само стъпка 4. Стъпки 1–3 Huawei не дава на приложенията да ги проверят – направи ги веднъж и те остават.',
     now: 'Сега',
     ok: 'без ограничения ✓',
     bad: 'ограничено',
@@ -331,29 +340,34 @@ export const bg = {
     // [текст, път (по желание), бележка (по желание)]
     steps: {
       samsung: [
-        ['Натисни бутона долу – отварят се настройките на Езан.'],
+        ['Натисни бутона долу – отварят се настройките на Hayya.'],
         ['Отвори', 'Батерия'],
         ['Избери', 'Без ограничения', 'Не „Оптимизирана“ и не „Ограничена“.'],
-        ['По желание:', 'Настройки → Батерия → Ограничения на фона', 'Езан да не е в „Приложения в дълбок сън“ и „Приложения в сън“.'],
+        ['По желание:', 'Настройки → Батерия → Ограничения на фона', 'Hayya да не е в „Приложения в дълбок сън“ и „Приложения в сън“.'],
       ],
       xiaomi: [
-        ['Натисни бутона долу – отварят се настройките на Езан.'],
+        ['Натисни бутона долу – отварят се настройките на Hayya.'],
         ['Отвори', 'Пестене на батерия', 'Избери „Без ограничения“.'],
         ['Включи', 'Автоматично стартиране'],
-        ['По желание: в последните приложения задръж картата на Езан и я заключи (катинарче).'],
+        ['По желание: в последните приложения задръж картата на Hayya и я заключи (катинарче).'],
       ],
       huawei: [
-        ['Отвори', 'Настройки → Батерия → Стартиране на приложения'],
-        ['Намери Езан и изключи', 'Управлявай автоматично'],
+        ['Натисни бутона долу – отваря се', 'Стартиране на приложения', 'Ако се отвори „Батерия“, натисни там „Стартиране на приложения“.'],
+        ['Намери Hayya и изключи', 'Управлявай автоматично'],
         ['В прозореца включи и трите:', 'Автоматично стартиране · Вторично стартиране · Работа на заден план'],
+        [
+          'Натисни „Списък „Оптимизация на батерията““, избери „Всички приложения“ → Hayya →',
+          'Не разрешавай',
+          'При Huawei „Не разрешавай“ значи: без оптимизация.',
+        ],
       ],
       oppo: [
-        ['Натисни бутона долу – отварят се настройките на Езан.'],
+        ['Натисни бутона долу – отварят се настройките на Hayya.'],
         ['Отвори', 'Използване на батерията'],
         ['Включи', 'Разреши работа на заден план', 'и „Автоматично стартиране“, ако го има.'],
       ],
       other: [
-        ['Натисни бутона долу – отварят се настройките на Езан.'],
+        ['Натисни бутона долу – отварят се настройките на Hayya.'],
         ['Отвори', 'Батерия'],
         ['Избери', 'Без ограничения', 'На някои телефони се казва „Не оптимизирай“.'],
       ],
@@ -362,10 +376,11 @@ export const bg = {
 
   about: {
     title: 'За приложението',
-    name: 'Езан',
+    name: 'Hayya',
     back: 'Настройки',
     version: (v: string) => `Версия ${v}`,
     tagline: 'Часове за намаз, напомняния и езан',
+    meaning: '„Хайя але-с-салях“ – „Елате на молитва“',
     groupTimes: 'Източници на часовете',
     groupPlaces: 'Данни за местата',
     groupPrivacy: 'Поверителност',
@@ -544,6 +559,22 @@ export const bg = {
     row: 'Дати на празниците',
   },
 
+  skyline: {
+    group: 'Изглед',
+    row: 'Силует зад часовника',
+    title: 'Силует зад часовника',
+    back: 'Настройки',
+    intro: 'Какво да се вижда зад часовника на екрана „Днес“.',
+    names: {
+      dome: 'Купол с две минарета',
+      haram: 'Масджид ал-Харам',
+      nabawi: 'Масджид ан-Набауи',
+      aqsa: 'Ал-Акса',
+    } as Record<SkylineId, string>,
+    short: { dome: 'Купол', haram: 'Ал-Харам', nabawi: 'Ан-Набауи', aqsa: 'Ал-Акса' } as Record<SkylineId, string>,
+    places: { dome: 'По подразбиране', haram: 'Мека', nabawi: 'Медина', aqsa: 'Йерусалим' } as Record<SkylineId, string>,
+  },
+
   methods: {
     Turkey: 'Диянет (Турция)',
     MuslimWorldLeague: 'Muslim World League',
@@ -715,7 +746,7 @@ export const en: Strings = {
     tomorrowShort: (time) => `tomorrow ${time}`,
     until: (name) => `until ${name}`,
     left: 'left',
-    empty: 'Open Adhan to see the prayer times.',
+    empty: 'Open Hayya to see the prayer times.',
   },
 
   notifications: {
@@ -725,7 +756,7 @@ export const en: Strings = {
     nextLine: (prayer, time, tomorrow) => `Next: ${prayer} at ${time}${tomorrow ? ' (tomorrow)' : ''}`,
     reminderTitle: (prayer, minutes, time) => `${prayer} in ${minutes} min – ${time}`,
     reminderBody: (place) => `Time for wudu and to get ready for prayer · ${place}`,
-    refreshTitle: 'Open Adhan',
+    refreshTitle: 'Open Hayya',
     refreshBody: 'Open the app to keep prayer notifications coming.',
     channelPrayer: 'Prayers',
     channelAdhan: 'Alarm',
@@ -757,7 +788,7 @@ export const en: Strings = {
     diagnostics: 'Notification check',
     diag: {
       title: 'Notification check',
-      subtitle: 'Whether the phone shows Adhan notifications on time – and what to fix if not.',
+      subtitle: 'Whether the phone shows Hayya notifications on time – and what to fix if not.',
       refresh: 'Refresh',
       updated: (time) => `Updated at ${time}`,
       status: 'Status',
@@ -771,9 +802,14 @@ export const en: Strings = {
       test: 'Test notification',
         testNotification: 'Notification',
       testIn: (s) => `in ${s} s`,
-      testHint: 'Arrives in 10 s. Lock the phone to see and hear it as it will arrive. The alarm sound can be previewed in Settings → Sounds.',
+      testHint: 'Arrives in 10 s. Lock the phone to see and hear it as it will arrive.',
+      testAlarm: 'Test alarm',
+      testAlarmButton: 'Alarm',
+      testAlarmHint: (prayer) =>
+        `Rings in 10 s, full screen, with the ${prayer} sound – exactly as it will at prayer time. Lock the phone and wait.`,
       recent: 'Recent notifications',
-      recentNone: 'No Adhan notifications shown yet.',
+      recentNone: 'No Hayya notifications shown yet.',
+      recentNote: 'Every notification, reminder and alarm is recorded – even if it was swiped away without opening it.',
       onTime: 'on time',
       late: (s) => (s < 60 ? `+${s} s` : `+${Math.round(s / 6) / 10} min`),
       plannedShown: (planned, shown) => `planned ${planned} · shown ${shown}`,
@@ -787,7 +823,7 @@ export const en: Strings = {
       channelLine: (importance, sound, vibrate, usage) =>
         `importance ${importance} · sound ${sound} · vibration ${vibrate ? 'yes' : 'no'} · stream ${usage}`,
       reset: 'Reschedule all notifications',
-      resetHint: 'Deletes all Adhan notifications and schedules them again from the current settings. Use it if something looks wrong.',
+      resetHint: 'Deletes all Hayya notifications and schedules them again from the current settings. Use it if something looks wrong.',
       resetDone: '✓ All notifications have been scheduled again.',
       fullScreenOk: 'Full-screen alarm',
       fullScreenBad: 'Full-screen alarm is off',
@@ -889,7 +925,7 @@ export const en: Strings = {
   },
 
   alarm: {
-    app: 'Adhan',
+    app: 'Hayya',
     title: (prayer) => `It's time for ${prayer}`,
     stop: 'Stop adhan',
     stopAlarm: 'Stop alarm',
@@ -902,10 +938,13 @@ export const en: Strings = {
 
   battery: {
     title: 'Background activity',
-    lede: 'To save battery, the phone may put Adhan to sleep, and the alarm may be late or not ring at all. Let the app run without restrictions.',
+    lede: 'To save battery, the phone may put Hayya to sleep, and the alarm may be late or not ring at all. Let the app run without restrictions.',
     yourPhone: 'Your phone',
-    open: 'Open Adhan settings',
+    open: 'Open Hayya settings',
     openList: '"Battery optimization" list',
+    openHuawei: 'Open "App launch"',
+    huaweiCheckNote:
+      "The check only sees step 4. Huawei doesn't let apps check steps 1–3 – do them once and they stay.",
     now: 'Now',
     ok: 'unrestricted ✓',
     bad: 'restricted',
@@ -921,29 +960,34 @@ export const en: Strings = {
     },
     steps: {
       samsung: [
-        ['Tap the button below – the Adhan settings open.'],
+        ['Tap the button below – the Hayya settings open.'],
         ['Open', 'Battery'],
         ['Choose', 'Unrestricted', 'Not "Optimized" and not "Restricted".'],
-        ['Optional:', 'Settings → Battery → Background usage limits', 'Adhan should not be in "Deep sleeping apps" or "Sleeping apps".'],
+        ['Optional:', 'Settings → Battery → Background usage limits', 'Hayya should not be in "Deep sleeping apps" or "Sleeping apps".'],
       ],
       xiaomi: [
-        ['Tap the button below – the Adhan settings open.'],
+        ['Tap the button below – the Hayya settings open.'],
         ['Open', 'Battery saver', 'Choose "No restrictions".'],
         ['Turn on', 'Autostart'],
-        ['Optional: in recent apps, hold the Adhan card and lock it (padlock).'],
+        ['Optional: in recent apps, hold the Hayya card and lock it (padlock).'],
       ],
       huawei: [
-        ['Open', 'Settings → Battery → App launch'],
-        ['Find Adhan and turn off', 'Manage automatically'],
+        ['Tap the button below – it opens', 'App launch', 'If "Battery" opens instead, tap "App launch" there.'],
+        ['Find Hayya and turn off', 'Manage automatically'],
         ['In the window, turn on all three:', 'Auto-launch · Secondary launch · Run in background'],
+        [
+          'Tap "Battery optimization" list, choose "All apps" → Hayya →',
+          "Don't allow",
+          'On Huawei, "Don\'t allow" means: no optimization.',
+        ],
       ],
       oppo: [
-        ['Tap the button below – the Adhan settings open.'],
+        ['Tap the button below – the Hayya settings open.'],
         ['Open', 'Battery usage'],
         ['Turn on', 'Allow background activity', 'and "Auto launch", if it is there.'],
       ],
       other: [
-        ['Tap the button below – the Adhan settings open.'],
+        ['Tap the button below – the Hayya settings open.'],
         ['Open', 'Battery'],
         ['Choose', 'Unrestricted', 'On some phones it is called "Don\'t optimize".'],
       ],
@@ -952,10 +996,11 @@ export const en: Strings = {
 
   about: {
     title: 'About',
-    name: 'Adhan',
+    name: 'Hayya',
     back: 'Settings',
     version: (v: string) => `Version ${v}`,
     tagline: 'Prayer times, reminders and the adhan',
+    meaning: '“Hayya ʿala-s-salah” – “Come to prayer”',
     groupTimes: 'Prayer time sources',
     groupPlaces: 'Place data',
     groupPrivacy: 'Privacy',
@@ -1132,6 +1177,22 @@ export const en: Strings = {
     note: 'The Hijri date on “Today” and “Month” follows the same choice.',
     group: 'Holidays',
     row: 'Holiday dates',
+  },
+
+  skyline: {
+    group: 'Appearance',
+    row: 'Silhouette behind the clock',
+    title: 'Silhouette behind the clock',
+    back: 'Settings',
+    intro: 'What to show behind the clock on the “Today” screen.',
+    names: {
+      dome: 'Dome with two minarets',
+      haram: 'Masjid al-Haram',
+      nabawi: 'Al-Masjid an-Nabawi',
+      aqsa: 'Al-Aqsa',
+    },
+    short: { dome: 'Dome', haram: 'Al-Haram', nabawi: 'An-Nabawi', aqsa: 'Al-Aqsa' },
+    places: { dome: 'Default', haram: 'Mecca', nabawi: 'Medina', aqsa: 'Jerusalem' },
   },
 
   methods: {

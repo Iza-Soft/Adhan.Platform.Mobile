@@ -118,7 +118,7 @@ export const tr: Strings = {
     tomorrowShort: (time) => `yarın ${time}`,
     until: (name) => `${name} vaktine kalan`,
     left: 'kaldı',
-    empty: 'Vakitleri görmek için Ezan’ı açın.',
+    empty: 'Vakitleri görmek için Hayya’yı açın.',
   },
 
   notifications: {
@@ -128,7 +128,7 @@ export const tr: Strings = {
     nextLine: (prayer, time, tomorrow) => `Sıradaki: ${prayer}, ${tomorrow ? 'yarın ' : ''}saat ${time}`,
     reminderTitle: (prayer, minutes, time) => `${prayer} vaktine ${minutes} dk – ${time}`,
     reminderBody: (place) => `Abdest alıp namaza hazırlanma vakti · ${place}`,
-    refreshTitle: 'Ezan’ı açın',
+    refreshTitle: 'Hayya’yı açın',
     refreshBody: 'Namaz bildirimlerinin gelmeye devam etmesi için uygulamayı açın.',
     channelPrayer: 'Namazlar',
     channelAdhan: 'Alarm',
@@ -160,7 +160,7 @@ export const tr: Strings = {
     diagnostics: 'Bildirim kontrolü',
     diag: {
       title: 'Bildirim kontrolü',
-      subtitle: 'Telefon Ezan bildirimlerini zamanında gösteriyor mu – göstermiyorsa neyin düzeltilmesi gerekir.',
+      subtitle: 'Telefon Hayya bildirimlerini zamanında gösteriyor mu – göstermiyorsa neyin düzeltilmesi gerekir.',
       refresh: 'Yenile',
       updated: (time) => `Güncellendi: ${time}`,
       status: 'Durum',
@@ -174,11 +174,16 @@ export const tr: Strings = {
       test: 'Deneme bildirimi',
       testNotification: 'Bildirim',
       testIn: (s) => `${s} sn sonra`,
-      testHint: '10 sn sonra gelir. Gerçekte nasıl geleceğini görmek ve duymak için telefonu kilitleyin. Alarm sesi Ayarlar → Sesler bölümünden dinlenebilir.',
+      testHint: '10 sn sonra gelir. Gerçekte nasıl geleceğini görmek ve duymak için telefonu kilitleyin.',
+      testAlarm: 'Deneme alarmı',
+      testAlarmButton: 'Alarm',
+      testAlarmHint: (prayer) =>
+        `10 sn sonra tam ekran, ${prayer} sesiyle çalar – namaz vaktinde nasıl çalacaksa öyle. Telefonu kilitleyip bekleyin.`,
       recent: 'Son bildirimler',
-      recentNone: 'Henüz Ezan bildirimi gösterilmedi.',
+      recentNone: 'Henüz Hayya bildirimi gösterilmedi.',
+      recentNote: 'Her bildirim, hatırlatma ve alarm kaydedilir – açılmadan kaydırılıp silinse bile.',
       onTime: 'zamanında',
-      late: (s) => (s < 60 ? `+${s} sn` : `+${Math.round(s / 6) / 10} dk`),
+      late: (s) => (s < 60 ? `+${s} sn` : `+${String(Math.round(s / 6) / 10).replace('.', ',')} dk`),
       plannedShown: (planned, shown) => `planlanan ${planned} · gösterilen ${shown}`,
       upcoming: 'Yaklaşan bildirimler',
       kindAlarm: 'Alarm',
@@ -190,7 +195,7 @@ export const tr: Strings = {
       channelLine: (importance, sound, vibrate, usage) =>
         `önem ${importance} · ses ${sound} · titreşim ${vibrate ? 'evet' : 'hayır'} · akış ${usage}`,
       reset: 'Tüm bildirimleri yeniden planla',
-      resetHint: 'Tüm Ezan bildirimlerini siler ve geçerli ayarlarla yeniden planlar. Bir şey yanlış görünüyorsa kullanın.',
+      resetHint: 'Tüm Hayya bildirimlerini siler ve geçerli ayarlarla yeniden planlar. Bir şey yanlış görünüyorsa kullanın.',
       resetDone: '✓ Tüm bildirimler yeniden planlandı.',
       fullScreenOk: 'Tam ekran alarm',
       fullScreenBad: 'Tam ekran alarm kapalı',
@@ -292,7 +297,7 @@ export const tr: Strings = {
   },
 
   alarm: {
-    app: 'Ezan',
+    app: 'Hayya',
     title: (prayer) => `${prayer} vakti`,
     stop: 'Ezanı durdur',
     stopAlarm: 'Alarmı durdur',
@@ -305,10 +310,13 @@ export const tr: Strings = {
 
   battery: {
     title: 'Arka plan etkinliği',
-    lede: 'Telefon pil tasarrufu için Ezan’ı uyutabilir; alarm gecikebilir ya da hiç çalmayabilir. Uygulamanın kısıtlamasız çalışmasına izin verin.',
+    lede: 'Telefon pil tasarrufu için Hayya’yı uyutabilir; alarm gecikebilir ya da hiç çalmayabilir. Uygulamanın kısıtlamasız çalışmasına izin verin.',
     yourPhone: 'Telefonunuz',
-    open: 'Ezan ayarlarını aç',
+    open: 'Hayya ayarlarını aç',
     openList: '“Pil optimizasyonu” listesi',
+    openHuawei: '“Uygulama başlatma”yı aç',
+    huaweiCheckNote:
+      'Kontrol yalnızca 4. adımı görür. Huawei, 1–3. adımların uygulamalar tarafından kontrol edilmesine izin vermez – bir kez yapın, kalıcıdır.',
     now: 'Şu an',
     ok: 'kısıtlamasız ✓',
     bad: 'kısıtlı',
@@ -324,29 +332,34 @@ export const tr: Strings = {
     },
     steps: {
       samsung: [
-        ['Aşağıdaki düğmeye dokunun – Ezan ayarları açılır.'],
+        ['Aşağıdaki düğmeye dokunun – Hayya ayarları açılır.'],
         ['Açın:', 'Pil'],
         ['Seçin:', 'Kısıtlanmamış', '“Optimize edildi” ya da “Kısıtlanmış” değil.'],
-        ['İsteğe bağlı:', 'Ayarlar → Pil → Arka plan kullanım sınırları', 'Ezan “Derin uykudaki uygulamalar” veya “Uykudaki uygulamalar” içinde olmamalı.'],
+        ['İsteğe bağlı:', 'Ayarlar → Pil → Arka plan kullanım sınırları', 'Hayya “Derin uykudaki uygulamalar” veya “Uykudaki uygulamalar” içinde olmamalı.'],
       ],
       xiaomi: [
-        ['Aşağıdaki düğmeye dokunun – Ezan ayarları açılır.'],
+        ['Aşağıdaki düğmeye dokunun – Hayya ayarları açılır.'],
         ['Açın:', 'Pil tasarrufu', '“Kısıtlama yok” seçeneğini seçin.'],
         ['Açın:', 'Otomatik başlatma'],
-        ['İsteğe bağlı: son uygulamalarda Ezan kartını basılı tutun ve kilitleyin (asma kilit).'],
+        ['İsteğe bağlı: son uygulamalarda Hayya kartını basılı tutun ve kilitleyin (asma kilit).'],
       ],
       huawei: [
-        ['Açın:', 'Ayarlar → Pil → Uygulama başlatma'],
-        ['Ezan’ı bulun ve kapatın:', 'Otomatik olarak yönet'],
+        ['Aşağıdaki düğmeye dokunun – açılır:', 'Uygulama başlatma', '“Pil” açılırsa, orada “Uygulama başlatma”ya dokunun.'],
+        ['Hayya’yı bulun ve kapatın:', 'Otomatik olarak yönet'],
         ['Açılan pencerede üçünü de açın:', 'Otomatik başlatma · İkincil başlatma · Arka planda çalıştır'],
+        [
+          '“Pil optimizasyonu” listesine dokunun, “Tüm uygulamalar” → Hayya →',
+          'İzin verme',
+          'Huawei’de “İzin verme”, optimizasyon yok demektir.',
+        ],
       ],
       oppo: [
-        ['Aşağıdaki düğmeye dokunun – Ezan ayarları açılır.'],
+        ['Aşağıdaki düğmeye dokunun – Hayya ayarları açılır.'],
         ['Açın:', 'Pil kullanımı'],
         ['Açın:', 'Arka plan etkinliğine izin ver', 've varsa “Otomatik başlatma”yı.'],
       ],
       other: [
-        ['Aşağıdaki düğmeye dokunun – Ezan ayarları açılır.'],
+        ['Aşağıdaki düğmeye dokunun – Hayya ayarları açılır.'],
         ['Açın:', 'Pil'],
         ['Seçin:', 'Kısıtlanmamış', 'Bazı telefonlarda adı “Optimize etme”dir.'],
       ],
@@ -355,10 +368,11 @@ export const tr: Strings = {
 
   about: {
     title: 'Hakkında',
-    name: 'Ezan',
+    name: 'Hayya',
     back: 'Ayarlar',
     version: (v: string) => `Sürüm ${v}`,
     tagline: 'Namaz vakitleri, hatırlatmalar ve ezan',
+    meaning: '“Hayye ale’s-salâh” – “Haydi namaza”',
     groupTimes: 'Vakitlerin kaynakları',
     groupPlaces: 'Yer verileri',
     groupPrivacy: 'Gizlilik',
@@ -535,6 +549,22 @@ export const tr: Strings = {
     note: '„Bugün“ ve „Ay“ ekranlarındaki hicri tarih de aynı seçime uyar.',
     group: 'Dini günler',
     row: 'Dini gün tarihleri',
+  },
+
+  skyline: {
+    group: 'Görünüm',
+    row: 'Saatin arkasındaki siluet',
+    title: 'Saatin arkasındaki siluet',
+    back: 'Ayarlar',
+    intro: '„Bugün“ ekranında saatin arkasında ne görünsün.',
+    names: {
+      dome: 'İki minareli kubbe',
+      haram: 'Mescid-i Haram',
+      nabawi: 'Mescid-i Nebevî',
+      aqsa: 'Mescid-i Aksâ',
+    },
+    short: { dome: 'Kubbe', haram: 'Mescid-i Haram', nabawi: 'Mescid-i Nebevî', aqsa: 'Mescid-i Aksâ' },
+    places: { dome: 'Varsayılan', haram: 'Mekke', nabawi: 'Medine', aqsa: 'Kudüs' },
   },
 
   methods: {

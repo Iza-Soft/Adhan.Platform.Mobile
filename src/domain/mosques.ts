@@ -46,12 +46,25 @@ export function privacyArea(lat: number, lon: number, radiusM: number): { lat: n
   return { lat: Math.round(lat * 100) / 100, lon: Math.round(lon * 100) / 100, radiusM: radiusM + 1500 };
 }
 
-/** Заявката към Overpass (Overpass QL). `out center` дава точка и за сградите (way). */
-export function overpassQuery(lat: number, lon: number, radiusM: number): string {
+/** Квадратът около закръглената точка (юг, запад, север, изток), който обхваща кръга. */
+export function privacyBox(lat: number, lon: number, radiusM: number): [number, number, number, number] {
   const a = privacyArea(lat, lon, radiusM);
+  const dLat = a.radiusM / 111_320;
+  const dLon = a.radiusM / (111_320 * Math.cos((a.lat * Math.PI) / 180));
+  const r = (x: number) => Math.round(x * 10_000) / 10_000;
+  return [r(a.lat - dLat), r(a.lon - dLon), r(a.lat + dLat), r(a.lon + dLon)];
+}
+
+/**
+ * Заявката към Overpass (Overpass QL). Търси в квадрат (bbox), а не в кръг (around) –
+ * така сървърът отговаря в пъти по-бързо; ъглите извън кръга се махат тук (nearMosques).
+ * `out center` дава точка и за сградите (way).
+ */
+export function overpassQuery(lat: number, lon: number, radiusM: number): string {
+  const [s, w, n, e] = privacyBox(lat, lon, radiusM);
   return (
-    `[out:json][timeout:25];` +
-    `nwr["amenity"="place_of_worship"]["religion"="muslim"](around:${a.radiusM},${a.lat},${a.lon});` +
+    `[out:json][timeout:15][bbox:${s},${w},${n},${e}];` +
+    `nwr["amenity"="place_of_worship"]["religion"="muslim"];` +
     `out center tags;`
   );
 }

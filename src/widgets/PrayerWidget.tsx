@@ -53,7 +53,7 @@ const PrayerWidget = (props: PrayerWidgetProps, environment: WidgetEnvironment) 
         spacing={6}
         modifiers={[
           containerBackground({ type: 'linearGradient', colors: ['#0F1B2D', '#1A2A44'], startPoint: { x: 0.5, y: 0 }, endPoint: { x: 0.5, y: 1 } }, 'widget'),
-          widgetURL('adhan://'),
+          widgetURL('hayya://'),
         ]}
       >
         {lock ? null : <Text modifiers={[font({ size: 26, weight: 'bold' }), foregroundStyle(GOLD)]}>أذان</Text>}
@@ -70,7 +70,7 @@ const PrayerWidget = (props: PrayerWidgetProps, environment: WidgetEnvironment) 
     { type: 'linearGradient', colors: [...e.colors], startPoint: { x: 0.5, y: 0 }, endPoint: { x: 0.5, y: 1 } },
     'widget',
   );
-  const url = widgetURL('adhan://');
+  const url = widgetURL('hayya://');
 
   /* ---------------------------------------------------------- заключен екран */
   if (family === 'accessoryInline') {
@@ -205,7 +205,7 @@ const PrayerArabicWidget = (props: PrayerWidgetProps, environment: WidgetEnviron
   }
   const e = props;
   return (
-    <ZStack modifiers={[widgetURL('adhan://'), containerBackground('#00000000', 'widget')]}>
+    <ZStack modifiers={[widgetURL('hayya://'), containerBackground('#00000000', 'widget')]}>
       <AccessoryWidgetBackground />
       <VStack spacing={0}>
         <Text modifiers={[font({ size: 17, weight: 'bold' }), lineLimit(1), minimumScaleFactor(0.6)]}>{e.nextArabic}</Text>

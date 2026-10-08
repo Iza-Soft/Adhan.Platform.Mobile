@@ -1,17 +1,21 @@
 {
   "expo": {
-    "name": "Adhan",
-    "slug": "adhan",
+    "name": "Hayya",
+    "slug": "hayya",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.ilkoadamov.adhan",
+      "bundleIdentifier": "com.ilkoadamov.hayya",
       "infoPlist": {
         "CFBundleAllowMixedLocalizations": true,
-        "LSApplicationQueriesSchemes": ["comgooglemaps", "waze", "om"]
+        "LSApplicationQueriesSchemes": [
+          "comgooglemaps",
+          "waze",
+          "om"
+        ]
       }
     },
     "android": {
@@ -22,7 +26,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.ilkoadamov.adhan",
+      "package": "com.ilkoadamov.hayya",
       "permissions": [
         "android.permission.SCHEDULE_EXACT_ALARM"
       ],
@@ -43,6 +47,13 @@
           "backgroundColor": "#0F1B2D",
           "image": "./assets/splash-icon.png",
           "imageWidth": 160
+        }
+      ],
+      [
+        "expo-navigation-bar",
+        {
+          "enforceContrast": false,
+          "style": "light"
         }
       ],
       "expo-font",
@@ -74,7 +85,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Adhan uses your location to show the prayer times for the place where you are and the mosques nearby.",
+          "locationWhenInUsePermission": "Hayya uses your location to show the prayer times for the place where you are and the mosques nearby.",
           "locationAlwaysAndWhenInUsePermission": false,
           "locationAlwaysPermission": false,
           "motionUsagePermission": false
@@ -132,7 +143,7 @@
           "widgets": [
             {
               "name": "PrayerWidget",
-              "displayName": "Adhan",
+              "displayName": "Hayya",
               "description": "The next prayer and the time left",
               "ios": {
                 "supportedFamilies": [
@@ -147,7 +158,7 @@
             },
             {
               "name": "PrayerArabicWidget",
-              "displayName": "Adhan · Arabic",
+              "displayName": "Hayya · Arabic",
               "description": "The next prayer in Arabic and the time left",
               "ios": {
                 "supportedFamilies": [
@@ -161,7 +172,7 @@
       ],
       "@maplibre/maplibre-react-native"
     ],
-    "scheme": "adhan",
+    "scheme": "hayya",
     "backgroundColor": "#0F1B2D",
     "experiments": {
       "typedRoutes": true

@@ -18,6 +18,7 @@ import {
 import type { AppLocation } from '@/domain/location';
 import { resolveHolidaySource, type HolidayId, type HolidaySource, type HolidaySourceChoice } from '@/domain/holidays';
 import type { HijriCalendar } from '@/domain/hijriTable';
+import { DEFAULT_SKYLINE, type SkylineId } from '@/domain/skylines';
 import type { NavAppId } from '@/domain/navApps';
 import { getPlace, PLACES_COUNT, placeToLocation } from '@/domain/places';
 import { countryOf } from '@/domain/resolve';
@@ -67,6 +68,8 @@ interface SettingsState {
   holidaySource: HolidaySourceChoice;
   /** Напомняне за всеки празник поотделно (етап 13). */
   holidayReminders: Partial<Record<HolidayId, boolean>>;
+  /** Силуетът зад часовника на „Днес“ (Настройки → Изглед). */
+  skyline: SkylineId;
 
   setAutoLocation: (on: boolean) => void;
   setGpsLocation: (loc: AppLocation) => void;
@@ -85,6 +88,7 @@ interface SettingsState {
   forgetNavApp: () => void;
   setHolidaySource: (choice: HolidaySourceChoice) => void;
   setHolidayReminder: (id: HolidayId, on: boolean) => void;
+  setSkyline: (id: SkylineId) => void;
 }
 
 export const useSettings = create<SettingsState>()(
@@ -104,6 +108,7 @@ export const useSettings = create<SettingsState>()(
       navRemembered: false,
       holidaySource: 'auto',
       holidayReminders: {},
+      skyline: DEFAULT_SKYLINE,
 
       setAutoLocation: (on) => set({ autoLocation: on }),
       setGpsLocation: (loc) => set({ gpsLocation: loc }),
@@ -123,6 +128,7 @@ export const useSettings = create<SettingsState>()(
       forgetNavApp: () => set({ navApp: 'auto', navRemembered: false }),
       setHolidaySource: (holidaySource) => set({ holidaySource }),
       setHolidayReminder: (id, on) => set((s) => ({ holidayReminders: { ...s.holidayReminders, [id]: on } })),
+      setSkyline: (skyline) => set({ skyline }),
     }),
     {
       name: 'ezan.settings',
@@ -156,9 +162,11 @@ export const useSettings = create<SettingsState>()(
         navRemembered,
         holidaySource,
         holidayReminders,
+        skyline,
       }) => ({
         holidaySource,
         holidayReminders,
+        skyline,
         reminderMinutes,
         vibrate,
         navApp,

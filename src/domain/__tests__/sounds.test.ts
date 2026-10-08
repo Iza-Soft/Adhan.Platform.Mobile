@@ -16,7 +16,7 @@ const mine: CustomSound = {
   id: 'custom_1',
   kind: 'full',
   name: 'Ezan Bania Bashi',
-  file: 'file:///data/user/0/com.ilkoadamov.adhan/files/sounds/custom_1.mp3',
+  file: 'file:///data/user/0/com.ilkoadamov.hayya/files/sounds/custom_1.mp3',
   durationSec: 201,
 };
 const mineIos: CustomSound = { id: 'custom_2', kind: 'short', name: 'Tekbir', file: 'custom_2.caf', durationSec: 26 };

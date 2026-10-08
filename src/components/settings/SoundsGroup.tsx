@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { hasNativeAlarms } from '../../../modules/adhan-native';
+import { hasNativeAlarms } from '../../../modules/hayya-native';
 
 import { ChevronIcon } from '@/components/icons';
 import { PlayButton } from '@/components/sounds/PlayButton';

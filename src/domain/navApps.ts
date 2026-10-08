@@ -141,7 +141,7 @@ export function navUrl(
     case 'here':
       return `https://share.here.com/r/mylocation/${ll},${enc(to.name)}?m=${walk ? 'w' : 'd'}`;
     case 'petal':
-      return `petalmaps://route?daddr=${ll}&type=${walk ? 'walk' : 'drive'}&coordinateType=0&utm_source=com.ilkoadamov.adhan`;
+      return `petalmaps://route?daddr=${ll}&type=${walk ? 'walk' : 'drive'}&coordinateType=0&utm_source=com.ilkoadamov.hayya`;
     case 'organic':
       // без началната точка Organic Maps отхвърля връзката – тогава само показва мястото
       return from

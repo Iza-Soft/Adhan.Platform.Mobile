@@ -5,20 +5,27 @@ import { cacheCovers, overpassQuery, parseOverpass, privacyArea, type Mosque } f
 /**
  * Джамиите наблизо (етап 12) – мрежата и кешът.
  *
- * - Overpass API (OpenStreetMap): първо overpass-api.de, при грешка – overpass.kumi.systems.
+ * - Overpass API (OpenStreetMap): overpass.private.coffee и overpass-api.de (претоварен от 2026 г.).
+ *   Пита първия; ако до 5 сек. няма отговор (или веднага даде грешка) – пита и втория,
+ *   и взима който отговори пръв.
+ * - „Няма интернет“ само когато наистина няма връзка; бавен или претоварен сървър е „Сървърът не отговаря“.
  * - До сървъра отива само закръглено място (~1 км) – виж privacyArea.
  * - Кеш в паметта на телефона: последните търсения за 24 ч. Без интернет се показва
  *   последното търсене за района, колкото и старо да е (с часа му).
  * - Пазят се само нужните тагове (име, арабско име, адрес) – в Истанбул до 10 км са стотици джамии.
  */
 
-const ENDPOINTS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
+// без ограничение на заявките (wiki.openstreetmap.org/wiki/Overpass_API) – затова е първи
+const ENDPOINTS = ['https://overpass.private.coffee/api/interpreter', 'https://overpass-api.de/api/interpreter'];
 const CACHE_KEY = 'ezan.mosques.v1';
-const TIMEOUT_MS = 20_000;
+/** Колко чакаме един сървър (заявката е с [timeout:15]). */
+const TIMEOUT_MS = 18_000;
+/** След толкова без отговор питаме и следващия сървър, без да спираме първия. */
+const HEDGE_MS = 5_000;
 const MAX_ENTRIES = 3;
 /** По-често от това не питаме сървъра за същия район (Overpass е безплатен – да не го натоварваме). */
 const MIN_INTERVAL_MS = 60_000;
-const USER_AGENT = 'Ezan/1.0 (com.ilkoadamov.adhan; prayer times app)';
+const USER_AGENT = 'Hayya/1.0 (com.ilkoadamov.hayya; prayer times app)';
 
 const KEEP_TAGS = /^(name(:(bg|en|tr|ar))?|addr:(street|housenumber|suburb|district|city|place))$/;
 
@@ -97,9 +104,20 @@ function slim(elements: RawElement[]): RawElement[] {
   });
 }
 
-async function post(url: string, query: string): Promise<RawElement[]> {
+/**
+ * Една заявка към един сървър. `cancel` – друг сървър вече е отговорил.
+ * Грешки: 'offline' – заявката изобщо не стигна (няма връзка); 'server' – сървърът
+ * отговори с грешка, с нещо различно от JSON или не отговори навреме.
+ */
+async function post(url: string, query: string, cancel: AbortSignal): Promise<RawElement[]> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, TIMEOUT_MS);
+  const onCancel = () => controller.abort();
+  cancel.addEventListener('abort', onCancel);
   try {
     const res = await fetch(url, {
       method: 'POST',
@@ -112,7 +130,13 @@ async function post(url: string, query: string): Promise<RawElement[]> {
       signal: controller.signal,
     });
     if (!res.ok) throw new MosquesFetchError('server');
-    const json = (await res.json()) as { elements?: RawElement[]; remark?: string };
+    let json: { elements?: RawElement[]; remark?: string };
+    try {
+      json = (await res.json()) as typeof json;
+    } catch {
+      // претоварен сървър връща HTML страница вместо JSON
+      throw new MosquesFetchError('server');
+    }
     // „runtime error: Query timed out“ идва с код 200 и празен списък – това е грешка, не „няма джамии“
     if (!Array.isArray(json.elements) || (json.remark && json.elements.length === 0)) {
       throw new MosquesFetchError('server');
@@ -120,30 +144,65 @@ async function post(url: string, query: string): Promise<RawElement[]> {
     return json.elements;
   } catch (e) {
     if (e instanceof MosquesFetchError) throw e;
-    // AbortError (изтекло време) и „Network request failed“ – няма връзка или е твърде бавна
-    throw new MosquesFetchError('offline');
+    // изтеклото време е бавен сървър, не липса на интернет; „Network request failed“ – няма връзка
+    throw new MosquesFetchError(timedOut ? 'server' : 'offline');
   } finally {
     clearTimeout(timer);
+    cancel.removeEventListener('abort', onCancel);
   }
+}
+
+/**
+ * Пита сървърите „на стълба“: първия веднага, следващия – след HEDGE_MS или щом предишният
+ * даде грешка. Първият успешен отговор печели, останалите заявки се спират.
+ * Ако всички се провалят: 'server', ако поне един е отговорил (значи има интернет), иначе 'offline'.
+ */
+function fetchFirst(query: string): Promise<RawElement[]> {
+  return new Promise((resolve, reject) => {
+    const cancel = new AbortController();
+    const errors: MosquesError[] = [];
+    let started = 0;
+    let done = false;
+    let hedge: ReturnType<typeof setTimeout> | undefined;
+
+    const startNext = () => {
+      if (done || started >= ENDPOINTS.length) return;
+      const url = ENDPOINTS[started++];
+      clearTimeout(hedge);
+      if (started < ENDPOINTS.length) hedge = setTimeout(startNext, HEDGE_MS);
+      post(url, query, cancel.signal).then(
+        (elements) => {
+          if (done) return;
+          done = true;
+          clearTimeout(hedge);
+          cancel.abort();
+          resolve(elements);
+        },
+        (e: unknown) => {
+          if (done) return;
+          errors.push(e instanceof MosquesFetchError ? e.reason : 'offline');
+          if (errors.length === ENDPOINTS.length) {
+            done = true;
+            clearTimeout(hedge);
+            reject(new MosquesFetchError(errors.includes('server') ? 'server' : 'offline'));
+          } else if (started === errors.length) {
+            startNext();
+          }
+        },
+      );
+    };
+    startNext();
+  });
 }
 
 async function download(lat: number, lon: number, radiusM: number): Promise<CacheEntry> {
   const area = privacyArea(lat, lon, radiusM);
   const query = overpassQuery(lat, lon, radiusM);
   lastRequest = Date.now();
-  let error = new MosquesFetchError('offline');
-  // първият сървър е претоварен или не отговаря → вторият
-  for (const url of ENDPOINTS) {
-    try {
-      const elements = await post(url, query);
-      const entry: CacheEntry = { ...area, at: Date.now(), elements: slim(elements) };
-      await writeCache(entry);
-      return entry;
-    } catch (e) {
-      error = e as MosquesFetchError;
-    }
-  }
-  throw error;
+  const elements = await fetchFirst(query);
+  const entry: CacheEntry = { ...area, at: Date.now(), elements: slim(elements) };
+  await writeCache(entry);
+  return entry;
 }
 
 function toResult(entry: CacheEntry, lang: string, offline: boolean): MosquesResult {

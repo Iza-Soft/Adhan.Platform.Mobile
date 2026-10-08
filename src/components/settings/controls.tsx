@@ -28,6 +28,7 @@ export function NavRow({
   onPress,
   first,
   warn,
+  leading,
 }: {
   label: string;
   value?: string;
@@ -35,6 +36,8 @@ export function NavRow({
   first?: boolean;
   /** Стойността в оранжево – нещо не е наред. */
   warn?: boolean;
+  /** Картинка пред надписа (напр. силуетът в „Изглед“). */
+  leading?: ReactNode;
 }) {
   return (
     <Pressable
@@ -42,6 +45,7 @@ export function NavRow({
       accessibilityRole="button"
       style={({ pressed }) => [styles.row, !first && styles.rowBorder, pressed && styles.pressed]}
     >
+      {leading}
       <Text style={styles.label}>{label}</Text>
       {value ? (
         <Text style={[styles.value, warn && { color: colors.warn }]} numberOfLines={1}>

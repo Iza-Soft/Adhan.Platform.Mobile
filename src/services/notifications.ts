@@ -10,12 +10,15 @@ import {
   isIgnoringBatteryOptimizations,
   openExactAlarmSettings,
   setAlarms,
+  testAlarm,
   type NativeAlarm,
-} from '../../modules/adhan-native';
+  type NativeKind,
+} from '../../modules/hayya-native';
 
 import { NOTIFICATION_LIMIT, planHolidayReminders, planNotifications, type PlannedNotification } from '@/domain/notifications';
-import { PRAYERS, type PrayerId } from '@/domain/prayers';
+import { getSchedule, PRAYERS, type PrayerId } from '@/domain/prayers';
 import { findSound, notificationFileName, type SoundDef } from '@/domain/sounds';
+import { computeThreeDays } from '@/domain/times';
 import { getI18n } from '@/i18n';
 import { PHASE_GRADIENTS } from '@/theme/gradients';
 import { useAlertPrefs } from '@/store/alertPrefs';
@@ -262,16 +265,26 @@ async function doReschedule(): Promise<void> {
   const sounds = soundChoice();
 
   // Android (етап 5): езанът е истинска аларма в native частта – пълен звук, „Спри“,
-  // екран „Аларма“. Без точни аларми (setAlarmClock не става) – остава звукът на известието.
+  // екран „Аларма“. От 07.10.2026 и известията, и напомнянията минават оттам (setAlarmClock):
+  // точни и когато телефонът спи (Huawei отлагаше „точните известия“ до събуждане) и всяко
+  // се записва в „Последни известия“. Без точни аларми – всичко през expo-notifications, както преди.
   let alarmCount = 0;
   let notifications = plan;
+  const nativeChannels = new Set<string>();
   if (nativeAlarmsEnabled(exact)) {
-    const alarms = plan.filter(isAlarm);
-    notifications = plan.filter((n) => !isAlarm(n));
-    alarmCount = Math.max(
-      0,
-      setAlarms(alarms.map((n) => toNativeAlarm(n, s.vibrate, pick(selectLocation(s).names), sounds.full(n.prayer!)))),
-    );
+    const place = pick(selectLocation(s).names);
+    const items: NativeAlarm[] = [];
+    for (const n of plan) {
+      if (isAlarm(n)) {
+        items.push(toNativeAlarm(n, s.vibrate, place, sounds.full(n.prayer!)));
+      } else {
+        const channel = await ensureChannel('notify', sounds.notify, s.vibrate);
+        nativeChannels.add(channel);
+        items.push(toNativeNotification(n, channel, place, s.vibrate));
+      }
+    }
+    notifications = [];
+    alarmCount = setAlarms(items) > 0 ? plan.filter(isAlarm).length : 0;
   } else if (hasNativeAlarms()) {
     setAlarms([]);
   }
@@ -325,7 +338,7 @@ async function doReschedule(): Promise<void> {
     });
   }
 
-  await cleanupChannels(new Set(wanted.map((w) => w.channel))).catch(() => {});
+  await cleanupChannels(new Set([...wanted.map((w) => w.channel), ...nativeChannels])).catch(() => {});
 
   useNotificationStatus.setState({
     count: plan.length,
@@ -375,6 +388,44 @@ function toNativeAlarm(n: PlannedNotification, vibrate: boolean, place: string, 
   };
 }
 
+/** Видът за „Последни известия“: напомнянията за молитва, празник и „отвори приложението“ – „напомняне“. */
+function nativeKindOf(n: PlannedNotification): NativeKind {
+  if (isAlarm(n)) return 'alarm';
+  return n.kind === 'prayer' ? 'notification' : 'reminder';
+}
+
+/** Обикновено известие или напомняне → за native частта (Android): показва се в канала `channel`. */
+function toNativeNotification(n: PlannedNotification, channel: string, place: string, vibrate: boolean): NativeAlarm {
+  const { lang, t } = getI18n();
+  const prayer = (n.prayer ?? 'dhuhr') as PrayerId;
+  return {
+    id: n.id,
+    at: n.at.getTime(),
+    prayer,
+    title: n.title,
+    arabic: PRAYERS[prayer].arabic,
+    place,
+    notifTitle: n.title,
+    notifBody: n.body,
+    colors: [...PHASE_GRADIENTS[prayer]] as [string, string, string],
+    vibrate,
+    sound: '',
+    lang,
+    labels: {
+      app: t.alarm.app,
+      stop: t.alarm.stop,
+      mute: t.alarm.mute,
+      muteShort: t.alarm.muteShort,
+      close: t.alarm.close,
+      soundName: '',
+      channel: t.alarm.channel,
+    },
+    mode: 'notify',
+    channel,
+    kind: nativeKindOf(n),
+  };
+}
+
 /** Трие всички известия на Езан и ги планира наново (от „Проверка на известията“). */
 export async function resetAllNotifications(): Promise<void> {
   if (!SUPPORTED) return;
@@ -397,7 +448,20 @@ export async function sendTestNotification(): Promise<number> {
   const s = useSettings.getState();
   const sound = soundChoice().notify;
   const channel = await ensureChannel('notify', sound, s.vibrate);
-  const { t } = getI18n();
+  const { t, pick } = getI18n();
+  // Android: по същия път като истинските известия – и се записва в „Последни“
+  if (nativeAlarmsEnabled(useNotificationStatus.getState().exact)) {
+    const planned: PlannedNotification = {
+      id: 'test',
+      at: new Date(at),
+      kind: 'prayer',
+      prayer: null,
+      sound: 'chime',
+      title: t.notifications.testTitle,
+      body: t.notifications.testBody,
+    };
+    if (testAlarm(toNativeNotification(planned, channel, pick(selectLocation(s).names), s.vibrate), 10_000)) return at;
+  }
   await Notifications.scheduleNotificationAsync({
     identifier: `test-${Date.now()}`,
     content: {
@@ -414,6 +478,42 @@ export async function sendTestNotification(): Promise<number> {
     },
   });
   return at;
+}
+
+/** Пробната аларма е само на Android – с native алармата и разрешени точни аларми. */
+export function canTestAlarm(exact: boolean | null): boolean {
+  return nativeAlarmsEnabled(exact);
+}
+
+/** За коя молитва е пробната аларма: следващата (вместо Изгрев – Зухр, той няма езан). */
+export function testAlarmPrayer(now: Date = new Date()): PrayerId {
+  const s = useSettings.getState();
+  const next = getSchedule(now, computeThreeDays(now, selectTimesOptions(s).options)).next.id;
+  return next === 'sunrise' ? 'dhuhr' : next;
+}
+
+/**
+ * Пробна аларма след 10 сек. – истинската аларма на цял екран, със звука, избран за
+ * следващата молитва. Не пипа планираните аларми (native частта ѝ дава отделен id).
+ * Връща часа, в който ще звънне; null – не може да се планира (няма точни аларми).
+ */
+export async function sendTestAlarm(): Promise<number | null> {
+  const at = Date.now() + 10_000;
+  const s = useSettings.getState();
+  const { t, pick } = getI18n();
+  const prayer = testAlarmPrayer();
+  const place = pick(selectLocation(s).names);
+  const planned: PlannedNotification = {
+    id: 'test',
+    at: new Date(at),
+    kind: 'prayer',
+    prayer,
+    sound: 'adhan',
+    title: `${t.notifications.diag.testAlarm} · ${t.prayers[prayer]}`,
+    body: place,
+  };
+  const ok = testAlarm(toNativeAlarm(planned, s.vibrate, place, soundChoice().full(prayer)), 10_000);
+  return ok ? at : null;
 }
 
 /** Как се показва известие, докато приложението е отворено: като обикновено, със звук. */

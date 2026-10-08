@@ -13,7 +13,7 @@ import {
   prepareShortSound,
   previewNativeSound,
   stopNativePreview,
-} from '../../modules/adhan-native';
+} from '../../modules/hayya-native';
 
 import {
   FULL_MAX_SEC,
@@ -144,7 +144,7 @@ export async function addCustomSound(
         const problem = validateUpload('short', d, asset.size, 'notify');
         if (problem) return { ok: false, reason: problem === 'empty' ? 'unreadable' : problem, name, durationSec: d };
       }
-      // дълъг запис се скъсява до 30 сек. – на пауза, с плавно заглъхване (виж AdhanNativeModule.swift)
+      // дълъг запис се скъсява до 30 сек. – на пауза, с плавно заглъхване (виж HayyaNativeModule.swift)
       const r = await prepareNotificationSound(asset.uri, file, maxSec);
       if (!r) return { ok: false, reason: 'unsupported' };
       if (!r.ok || validateUpload('short', r.duration, asset.size)) {

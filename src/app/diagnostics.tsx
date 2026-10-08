@@ -4,19 +4,21 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { getAlarmHistory, getAlarms, openFullScreenIntentSettings } from '../../modules/adhan-native';
+import { getAlarmHistory, getAlarms, openFullScreenIntentSettings } from '../../modules/hayya-native';
 
 import { GeometricPattern } from '@/components/GeometricPattern';
 import { AlertIcon, ChevronDownIcon, ChevronIcon } from '@/components/icons';
 import { formatGregorianShort, formatHM } from '@/domain/format';
-import type { SoundKind } from '@/domain/notifications';
 import { useI18n } from '@/i18n';
 import {
   openExactAlarmSettings,
   refreshPermission,
   requestPermission,
   resetAllNotifications,
+  canTestAlarm,
+  sendTestAlarm,
   sendTestNotification,
+  testAlarmPrayer,
   useNotificationStatus,
 } from '@/services/notifications';
 import { colors } from '@/theme/colors';
@@ -31,7 +33,9 @@ interface Snapshot {
   loadedAt: Date;
   channels: Notifications.NotificationChannel[];
   upcoming: { id: string; at: Date; title: string; kind: Kind }[];
-  recent: { id: string; planned: Date | null; shown: Date; title: string }[];
+  recent: { id: string; planned: Date | null; shown: Date; title: string; kind: Kind }[];
+  /** Android с native алармите: „Последни“ е от записа на телефона (всяко известие), не само от лентата. */
+  history: boolean;
 }
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -54,7 +58,7 @@ function kindOf(r: Notifications.NotificationRequest): Kind {
 }
 
 async function fetchSnapshot(): Promise<Snapshot> {
-  if (Platform.OS === 'web') return { loadedAt: new Date(), channels: [], upcoming: [], recent: [] };
+  if (Platform.OS === 'web') return { loadedAt: new Date(), channels: [], upcoming: [], recent: [], history: false };
   await refreshPermission();
   const [channels, scheduled, presented] = await Promise.all([
     Platform.OS === 'android' ? Notifications.getNotificationChannelsAsync() : Promise.resolve([]),
@@ -63,14 +67,17 @@ async function fetchSnapshot(): Promise<Snapshot> {
   ]);
   // Android, етап 5: алармите с езана са в native частта, не в expo-notifications
   const now = Date.now();
-  const alarms = getAlarms()
+  // от 07.10.2026 там са и известията, и напомнянията (mode „notify“) – с вида им
+  const stored = getAlarms();
+  const alarms = stored
     .filter((a) => a.at > now)
-    .map((a) => ({ id: a.id, at: new Date(a.at), title: a.notifTitle, kind: 'alarm' as Kind }));
+    .map((a) => ({ id: a.id, at: new Date(a.at), title: a.notifTitle, kind: (a.kind ?? 'alarm') as Kind }));
   const fired = getAlarmHistory().map((h) => ({
     id: `alarm-${h.id}-${h.fired}`,
     planned: new Date(h.planned),
     shown: new Date(h.fired),
     title: h.title,
+    kind: (h.kind ?? 'alarm') as Kind,
   }));
   return {
     loadedAt: new Date(),
@@ -85,18 +92,24 @@ async function fetchSnapshot(): Promise<Snapshot> {
         planned: atOf(n.request.content.data),
         shown: new Date(n.date),
         title: n.request.content.title ?? '',
+        kind: kindOf(n.request),
       }))
+      // записаното от native частта се вижда и в лентата, докато не бъде изтрито – да не е два пъти
+      .filter((n) => !fired.some((f) => f.title === n.title && Math.abs(f.shown.getTime() - n.shown.getTime()) < 5000))
       .concat(fired)
       .sort((a, b) => b.shown.getTime() - a.shown.getTime()),
+    history: stored.some((a) => a.mode === 'notify') || fired.length > 0,
   };
 }
 
 /* ------------------------------------------------------------------ екран */
 
+type TestKind = 'notification' | 'alarm';
+
 /**
  * „Проверка на известията“ (Настройки → Известия):
- * състояние с отметки, пробно известие, последните показани (със закъснението),
- * следващите планирани и – сгънати – техническите данни.
+ * състояние с отметки, пробно известие, пробна аларма (Android), последните показани
+ * (със закъснението), следващите планирани и – сгънати – техническите данни.
  */
 export default function DiagnosticsScreen() {
   const insets = useSafeAreaInsets();
@@ -106,7 +119,7 @@ export default function DiagnosticsScreen() {
   const [snap, setSnap] = useState<Snapshot | null>(null);
   const [busy, setBusy] = useState(false);
   const [techOpen, setTechOpen] = useState(false);
-  const [test, setTest] = useState<{ sound: SoundKind; at: number } | null>(null);
+  const [test, setTest] = useState<{ kind: TestKind; at: number } | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
   const [refreshing, setRefreshing] = useState(false);
@@ -150,10 +163,11 @@ export default function DiagnosticsScreen() {
     else router.replace('/settings');
   };
 
-  const sendTest = async (sound: SoundKind) => {
-    const at = await sendTestNotification();
+  const sendTest = async (kind: TestKind) => {
+    const at = kind === 'alarm' ? await sendTestAlarm() : await sendTestNotification();
+    if (at === null) return;
     setNow(at - 10_000);
-    setTest({ sound, at });
+    setTest({ kind, at });
   };
 
   const reset = async () => {
@@ -178,27 +192,28 @@ export default function DiagnosticsScreen() {
       ? `${Platform.constants.Manufacturer} ${Platform.constants.Model} · Android ${Platform.constants.Release} (API ${Platform.Version})`
       : `${Platform.OS} ${Platform.Version}`;
 
-  const testButton = (sound: SoundKind, label: string) => {
-    const active = test?.sound === sound;
+  // пробното известие и пробната аларма – еднакви бутони; докато едното чака, другото е изключено
+  const testButton = (kind: TestKind, label: string) => {
+    const active = test?.kind === kind;
     const left = active ? Math.max(0, Math.ceil((test.at - now) / 1000)) : 0;
     return (
       <Pressable
-        onPress={() => sendTest(sound)}
+        onPress={() => sendTest(kind)}
         disabled={!!test || !granted}
         accessibilityRole="button"
         style={({ pressed }) => [
           styles.testBtn,
-          sound === 'adhan' && styles.testBtnGold,
           (!!test && !active) || !granted ? styles.disabled : null,
           pressed && styles.pressed,
         ]}
       >
-        <AlertIcon mode={sound === 'adhan' ? 'adhan' : 'notify'} size={20} color={sound === 'adhan' ? colors.goldInk : colors.text} />
-        <Text style={[styles.testLabel, sound === 'adhan' && styles.testLabelGold]}>{label}</Text>
-        {active && <Text style={[styles.testIn, sound === 'adhan' && styles.testLabelGold]}>{d.testIn(left)}</Text>}
+        <AlertIcon mode={kind === 'alarm' ? 'adhan' : 'notify'} size={20} color={colors.text} />
+        <Text style={styles.testLabel}>{label}</Text>
+        {active && <Text style={styles.testIn}>{d.testIn(left)}</Text>}
       </Pressable>
     );
   };
+  const alarmTest = canTestAlarm(status.exact);
 
   return (
     <View style={styles.root}>
@@ -256,11 +271,21 @@ export default function DiagnosticsScreen() {
         <Section label={d.test}>
           <View style={styles.testBox}>
             <View style={styles.testRow}>
-              {testButton('chime', d.testNotification)}
+              {testButton('notification', d.testNotification)}
             </View>
             <Text style={styles.small}>{d.testHint}</Text>
           </View>
         </Section>
+
+        {/* ---- Пробна аларма (Android): истинската аларма на цял екран след 10 сек. ---- */}
+        {alarmTest && (
+          <Section label={d.testAlarm}>
+            <View style={styles.testBox}>
+              <View style={styles.testRow}>{testButton('alarm', d.testAlarmButton)}</View>
+              <Text style={styles.small}>{d.testAlarmHint(t.prayers[testAlarmPrayer()])}</Text>
+            </View>
+          </Section>
+        )}
 
         {!snap ? (
           <ActivityIndicator color={colors.gold} style={{ marginTop: 12 }} />
@@ -273,31 +298,35 @@ export default function DiagnosticsScreen() {
                   <Text style={styles.small}>{d.recentNone}</Text>
                 </Line>
               ) : (
-                snap.recent.slice(0, 8).map((p, i) => {
+                snap.recent.slice(0, 10).map((p, i) => {
                   const delay = p.planned ? Math.round((p.shown.getTime() - p.planned.getTime()) / 1000) : null;
                   const onTime = delay !== null && delay < 60;
                   return (
-                    <Line key={p.id + i} first={i === 0}>
-                      <View style={styles.item}>
-                        <Text style={styles.itemTitle} numberOfLines={1}>
+                    <View key={p.id + i} style={[styles.recentLine, i > 0 && styles.lineBorder]}>
+                      <View style={styles.recentRow}>
+                        <Text style={[styles.itemTitle, styles.flex]} numberOfLines={1}>
                           {p.title}
                         </Text>
-                        <Text style={styles.small}>
+                        <KindTag kind={p.kind} label={kindLabel[p.kind]} />
+                      </View>
+                      <View style={styles.recentRow}>
+                        <Text style={[styles.small, styles.flex]}>
                           {p.planned ? d.plannedShown(hms(p.planned), hms(p.shown)) : hms(p.shown)}
                         </Text>
+                        {delay !== null && (
+                          <View style={[styles.badge, onTime ? styles.badgeOk : styles.badgeWarn]}>
+                            <Text style={[styles.badgeText, onTime ? styles.badgeTextOk : styles.badgeTextWarn]}>
+                              {onTime ? d.onTime : d.late(delay)}
+                            </Text>
+                          </View>
+                        )}
                       </View>
-                      {delay !== null && (
-                        <View style={[styles.badge, onTime ? styles.badgeOk : styles.badgeWarn]}>
-                          <Text style={[styles.badgeText, onTime ? styles.badgeTextOk : styles.badgeTextWarn]}>
-                            {onTime ? d.onTime : d.late(delay)}
-                          </Text>
-                        </View>
-                      )}
-                    </Line>
+                    </View>
                   );
                 })
               )}
             </Section>
+            {snap.history && <Text style={[styles.small, styles.recentNote]}>{d.recentNote}</Text>}
 
             {/* ---- Следващи ---- */}
             {snap.upcoming.length > 0 && (
@@ -311,9 +340,7 @@ export default function DiagnosticsScreen() {
                     <Text style={[styles.itemTitle, styles.flex]} numberOfLines={1}>
                       {r.title}
                     </Text>
-                    <View style={[styles.tag, r.kind === 'alarm' && styles.tagGold]}>
-                      <Text style={[styles.tagText, r.kind === 'alarm' && styles.tagTextGold]}>{kindLabel[r.kind]}</Text>
-                    </View>
+                    <KindTag kind={r.kind} label={kindLabel[r.kind]} />
                   </Line>
                 ))}
               </Section>
@@ -366,6 +393,15 @@ export default function DiagnosticsScreen() {
 }
 
 /* ------------------------------------------------------------------ части */
+
+/** Етикетът за вида: аларма – злато, напомняне – синьо, известие – сиво (както в mockup-а). */
+function KindTag({ kind, label }: { kind: Kind; label: string }) {
+  return (
+    <View style={[styles.tag, kind === 'alarm' && styles.tagGold, kind === 'reminder' && styles.tagBlue]}>
+      <Text style={[styles.tagText, kind === 'alarm' && styles.tagTextGold, kind === 'reminder' && styles.tagTextBlue]}>{label}</Text>
+    </View>
+  );
+}
 
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -458,9 +494,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.10)',
   },
-  testBtnGold: { backgroundColor: colors.gold, borderColor: colors.gold },
   testLabel: { fontFamily: fonts.bold, fontSize: 14, color: colors.text },
-  testLabelGold: { color: colors.goldInk },
   testIn: { fontFamily: fonts.semibold, fontSize: 11.5, color: colors.textDim, ...tabularNums },
   disabled: { opacity: 0.4 },
   pressed: { transform: [{ scale: 0.97 }] },
@@ -485,6 +519,11 @@ const styles = StyleSheet.create({
   tagGold: { backgroundColor: 'rgba(212,168,87,0.18)' },
   tagText: { fontFamily: fonts.semibold, fontSize: 11, color: colors.textDim },
   tagTextGold: { color: colors.gold },
+  tagBlue: { backgroundColor: 'rgba(120,160,230,0.16)' },
+  tagTextBlue: { color: '#A9C2F0' },
+  recentLine: { paddingHorizontal: 14, paddingVertical: 11, gap: 4 },
+  recentRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  recentNote: { marginTop: -12, paddingHorizontal: 6 },
 
   techHead: {
     flexDirection: 'row',

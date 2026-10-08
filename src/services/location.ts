@@ -2,7 +2,7 @@ import * as Location from 'expo-location';
 import { Platform } from 'react-native';
 import { create } from 'zustand';
 
-import { getNativeLocation, hasGoogleServices } from '../../modules/adhan-native';
+import { getNativeLocation, hasGoogleServices } from '../../modules/hayya-native';
 
 import { nameFromAddress } from '@/domain/abroadName';
 import { isInBulgaria } from '@/domain/places';

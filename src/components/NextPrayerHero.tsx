@@ -2,7 +2,9 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { formatCountdown, formatHM } from '@/domain/format';
 import { PRAYERS, type Schedule } from '@/domain/prayers';
+import { skylineOf } from '@/domain/skylines';
 import { useI18n } from '@/i18n';
+import { useSettings } from '@/store/settings';
 import { colors } from '@/theme/colors';
 import { FONT_SCALE, fonts, tabularNums } from '@/theme/typography';
 
@@ -11,6 +13,7 @@ import { Skyline } from './Skyline';
 
 export function NextPrayerHero({ schedule }: { schedule: Schedule }) {
   const { t } = useI18n();
+  const skyline = useSettings((s) => skylineOf(s.skyline));
   const meta = PRAYERS[schedule.next.id];
   const time = formatHM(schedule.next.time);
   const at = schedule.isNextTomorrow ? t.hero.tomorrowAt(time) : t.hero.at(time);
@@ -18,7 +21,7 @@ export function NextPrayerHero({ schedule }: { schedule: Schedule }) {
 
   return (
     <View style={styles.hero}>
-      <Skyline />
+      <Skyline id={skyline} />
       <CountdownRing progress={schedule.progress}>
         <Text
           maxFontSizeMultiplier={FONT_SCALE.dense}

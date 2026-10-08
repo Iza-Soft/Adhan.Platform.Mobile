@@ -19,10 +19,12 @@ import {
   SwitchRow,
   settingsStyles,
 } from '@/components/settings/controls';
+import { SkylineThumb } from '@/components/Skyline';
 import { useTabBarHeight } from '@/components/TabBar';
 import { CALC_METHODS, HIGH_LAT_RULES, isHighLatitude, isPolar, methodForCountry, type MethodChoice } from '@/domain/calc';
 import { PRAYER_IDS } from '@/domain/prayers';
 import { countryOf } from '@/domain/resolve';
+import { skylineOf } from '@/domain/skylines';
 import { countryName } from '@/domain/worldCities';
 import { useI18n } from '@/i18n';
 import { refreshLocation, useLocationStatus } from '@/services/location';
@@ -38,6 +40,7 @@ export default function SettingsScreen() {
   const { lang, t, pick } = useI18n();
   const s = useSettings();
   const location = selectLocation(s);
+  const skyline = skylineOf(s.skyline);
   const status = useLocationStatus((x) => x.status);
   const [open, setOpen] = useState<'method' | 'asr' | 'highLat' | null>(null);
 
@@ -257,6 +260,17 @@ export default function SettingsScreen() {
           />
         </Group>
 
+        {/* ---- Изглед: силуетът зад часовника на „Днес“ ---- */}
+        <Group label={t.skyline.group}>
+          <NavRow
+            first
+            leading={<SkylineThumb id={skyline} style={styles.skylineThumb} />}
+            label={t.skyline.row}
+            value={t.skyline.short[skyline]}
+            onPress={() => router.push('/skyline')}
+          />
+        </Group>
+
         {/* ---- Приложение: източниците и поверителността са в „За приложението“ ---- */}
         <Group label={t.settings.groupApp}>
           <NavRow first label={t.settings.about} value={APP_VERSION} onPress={() => router.push('/about')} />
@@ -272,6 +286,7 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.extrabold, fontSize: 26, color: colors.text, marginLeft: 4 },
   placeRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
   pressed: { backgroundColor: 'rgba(255,255,255,0.04)' },
+  skylineThumb: { width: 56, height: 26, borderRadius: 6 },
   placeText: { flex: 1, gap: 2 },
   placeName: { fontFamily: fonts.extrabold, fontSize: 17, color: colors.text },
   placeDetail: { fontFamily: fonts.medium, fontSize: 12.5, color: colors.muted },

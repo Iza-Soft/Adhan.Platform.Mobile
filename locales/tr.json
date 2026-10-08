@@ -1,9 +1,9 @@
 {
   "ios": {
-    "CFBundleDisplayName": "Ezan",
-    "NSLocationWhenInUseUsageDescription": "Ezan, bulunduğunuz yerin namaz vakitlerini ve yakındaki camileri göstermek için konumunuzu kullanır."
+    "CFBundleDisplayName": "Hayya",
+    "NSLocationWhenInUseUsageDescription": "Hayya, bulunduğunuz yerin namaz vakitlerini ve yakındaki camileri göstermek için konumunuzu kullanır."
   },
   "android": {
-    "app_name": "Ezan"
+    "app_name": "Hayya"
   }
 }
